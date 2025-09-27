@@ -3,8 +3,8 @@ requires = ["setuptools>=40.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ailogger"  # nome unico su PyPI
-version = "0.1.1"
+name = "mloggerai"  # nome unico su PyPI
+version = "0.0.0.dev2"
 description = "AiLogger: AI-powered Python traceback analyzer"
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [
@@ -22,4 +22,4 @@ Homepage = "https://github.com/perronemirko/mloggerai"
 Issues = "https://github.com/perronemirko/mloggerai/issues"
 
 [tool.setuptools.packages.find]
-where = ["ailogger"]
+where = ["."]
