@@ -3,22 +3,23 @@ requires = ["setuptools>=40.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ailogger"
+name = "ailogger"  # nome unico su PyPI
+version = "0.1.1"
+description = "AiLogger: AI-powered Python traceback analyzer"
+readme = { file = "README.md", content-type = "text/markdown" }
 authors = [
-  { name="mirko perrone"},
+  { name = "Mirko Perrone" },
 ]
-version = "0.1.0"
-description = "**AiLogger** is a Python package that automatically analyzes Python tracebacks using AI models (OpenAI / LM Studio) and provides concise bug fixes directly in the logs."
 requires-python = ">=3.10"
 dependencies = [
     "openai>=1.109.1",
 ]
 license = "MIT"
-license-files = ["LICEN[CS]E*"]
+license-files = ["LICENSE*"]
 
 [project.urls]
-Homepage = "https://github.com/perronemirko/ailogger"
-Issues = "https://github.com/perronemirko/ailogger/issues"
-# Explicitly list top-level packages to avoid automatic discovery errors
+Homepage = "https://github.com/perronemirko/mloggerai"
+Issues = "https://github.com/perronemirko/mloggerai/issues"
+
 [tool.setuptools.packages.find]
 where = ["ailogger"]
