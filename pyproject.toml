@@ -4,13 +4,21 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ailogger"
+authors = [
+  { name="mirko perrone"},
+]
 version = "0.1.0"
 description = "**AiLogger** is a Python package that automatically analyzes Python tracebacks using AI models (OpenAI / LM Studio) and provides concise bug fixes directly in the logs."
 requires-python = ">=3.10"
 dependencies = [
     "openai>=1.109.1",
 ]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
 
+[project.urls]
+Homepage = "https://github.com/perronemirko/ailogger"
+Issues = "https://github.com/perronemirko/ailogger/issues"
 # Explicitly list top-level packages to avoid automatic discovery errors
 [tool.setuptools.packages.find]
 where = ["ailogger"]

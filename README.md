@@ -14,9 +14,7 @@
 Install directly from the Git repository:
 
 ```bash
-pip install git+ssh://git@github.com:perronemirko/ailogger.git
-
-
+pip install "git+ssh://git@github.com/perronemirko/ailogger.git"
 
 
 Usage Examples
