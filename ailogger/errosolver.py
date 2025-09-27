@@ -1,17 +1,21 @@
 import logging
-import traceback
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from typing import cast
 
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam
-
+from dotenv import load_dotenv
+import os
 
 class ErrorSolver:
     def __init__(self, model=None, log_file="logs/logger.log", log_level=logging.DEBUG, output_language="italiano"):
+        
+        load_dotenv()  # Carica le variabili da .env
+        base_url:str = os.getenv("OPENAI_API_URL", "http://localhost:1234/v1")
+        api_key:str = os.getenv("OPENAI_API_KEY", "")
         self.model = model
-        self.client = OpenAI(base_url="http://<localhost>:<port>/v1", api_key="<YOUR_API_KEY>")
+        self.client = OpenAI(base_url=base_url, api_key=api_key)
 
         # Logger principale
         self.logger = logging.getLogger("AppLogger")

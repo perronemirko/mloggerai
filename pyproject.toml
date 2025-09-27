@@ -1,8 +1,16 @@
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "ailogger"
 version = "0.1.0"
-description = "Add your description here"
+description = "**AiLogger** is a Python package that automatically analyzes Python tracebacks using AI models (OpenAI / LM Studio) and provides concise bug fixes directly in the logs."
 requires-python = ">=3.10"
 dependencies = [
     "openai>=1.109.1",
 ]
+
+# Explicitly list top-level packages to avoid automatic discovery errors
+[tool.setuptools.packages.find]
+where = ["ailogger"]

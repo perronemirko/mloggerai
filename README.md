@@ -26,6 +26,9 @@ python
 from ailogger.errosolver import ErrorSolver
 import logging
 
+## Configuration with .env
+
+Create a `.env` file in the project root for defaults:
 # Initialize ErrorSolver with model and desired language
 solver = ErrorSolver(
     model="<YOUR_LLM_MODEL>",
