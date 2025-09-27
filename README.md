@@ -29,6 +29,9 @@ import logging
 ## Configuration with .env
 
 Create a `.env` file in the project root for defaults:
+OPENAI_API_URL
+OPENAI_API_KEY
+OPENAI_API_MODEL
 # Initialize ErrorSolver with model and desired language
 solver = ErrorSolver(
     model="<YOUR_LLM_MODEL>",

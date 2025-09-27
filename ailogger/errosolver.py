@@ -14,7 +14,9 @@ class ErrorSolver:
         load_dotenv()  # Carica le variabili da .env
         base_url:str = os.getenv("OPENAI_API_URL", "http://localhost:1234/v1")
         api_key:str = os.getenv("OPENAI_API_KEY", "")
-        self.model = model
+        self.model:str = os.getenv("OPENAI_API_MODEL", None)
+        if model is not None:
+            self.model = model
         self.client = OpenAI(base_url=base_url, api_key=api_key)
 
         # Logger principale

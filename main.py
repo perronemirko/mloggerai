@@ -1,7 +1,7 @@
 from ailogger.errosolver import ErrorSolver  # Assicurati che il file si chiami ErrorSolver.py
 
 def main():
-    solver = ErrorSolver(model="<YOUR_MODEL_NAME>", output_language="inglese")
+    solver = ErrorSolver (output_language="inglese")
     logger = solver.logger
 
     try:
