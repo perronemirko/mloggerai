@@ -13,15 +13,26 @@ Install directly from the Git repository:
 
 ```bash
 pip install "git+ssh://git@github.com/perronemirko/mloggerai.git"
-
+```
 
 Usage Examples
 Example 1: Basic usage
-python
-￼Copy code
+```python
 from mloggerai.errosolver import ErrorSolver
-import logging
+from dotenv import load_dotenv
+load_dotenv()  # Carica le variabili da .env
+def main():
+    solver = ErrorSolver()
+    logger = solver.logger
 
+    try:
+        1 / 0
+    except Exception as e:
+        logger.error("Errore catturato", exc_info=e)
+
+if __name__ == "__main__":
+    main()
+```
 ## Configuration with .env
 
 Create a `.env` file in the project root for defaults:

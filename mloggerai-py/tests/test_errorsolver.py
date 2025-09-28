@@ -1,5 +1,6 @@
 from mloggerai.errosolver import ErrorSolver
-
+from dotenv import load_dotenv
+load_dotenv()  # Carica le variabili da .env
 def main():
     solver = ErrorSolver()
     logger = solver.logger
