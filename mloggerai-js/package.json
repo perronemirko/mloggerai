@@ -1,0 +1,34 @@
+{
+  "name": "mloggerai",
+  "version": "0.0.1",
+  "description": "Modulo Node.js per analizzare errori e proporre soluzioni AI",
+  "main": "mloggerai.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "ai",
+    "errors",
+    "logging",
+    "openai",
+    "ollama",
+    "lm-studio",
+    "llama.cpp"
+  ],
+  "author": "Mirko Perrone",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "openai": "^4.0.0",
+    "winston": "^3.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/perronemirko/mloggerai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/perronemirko/mloggerai/issues"
+  },
+  "homepage": "https://github.com/perronemirko/mloggerai#readme"
+}
