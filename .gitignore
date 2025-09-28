@@ -149,6 +149,18 @@ ENV/
 env.bak/
 venv.bak/
 
+# Environments nodejs
+mloggerai-js/.env
+mloggerai-js/.envrc
+mloggerai-js/.venv
+mloggerai-js/env/
+mloggerai-js/venv/
+mloggerai-js/ENV/
+mloggerai-js/env.bak/
+mloggerai-js/venv.bak/
+mloggerai-js/node_modules
+mloggerai-js/package-lock.json
+mloggerai-js/logs
 # Spyder project settings
 .spyderproject
 .spyproject
