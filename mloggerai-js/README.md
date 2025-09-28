@@ -106,8 +106,9 @@ const solver = new ErrorSolver({
 ```
 ## Configuration with .env
 Create a .env file in the project root to configure the defaults:
-
+```bash
 OPENAI_API_URL="http://localhost:1234/v1"
 OPENAI_API_KEY="<MY_KEY>"
 OPENAI_API_MODEL="<MY_MODEL>"
 OPENAI_API_PROMPT="find the bug and always propose the best solution in a very concise way"
+```
