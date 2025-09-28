@@ -56,7 +56,7 @@ class ErrorSolver:
             messages = cast(
                 list[ChatCompletionMessageParam],
                 [
-                    {"role": "system", "content": f"{system_prompt}\nRispondi sempre in lingua {self.output_language}"},
+                    {"role": "system", "content": f"{system_prompt}.Rispondi sempre in lingua {self.output_language}"},
                     {"role": "user", "content": text},
                 ],
             )
