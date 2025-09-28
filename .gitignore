@@ -222,3 +222,37 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+## mloggerai-java
+# Build directories
+mloggerai-java/build/
+
+# Gradle
+mloggerai-java/.gradle/
+
+# Compiled classes
+mloggerai-java/**/*.class
+
+# JAR, ZIP, TAR
+mloggerai-java/**/*.jar
+mloggerai-java/**/*.zip
+mloggerai-java/**/*.tar
+
+# Logs
+mloggerai-java/logs/
+mloggerai-java/**/*.log
+
+# Generated sources
+mloggerai-java/build/generated/
+mloggerai-java/build/classes/
+
+# Reports
+mloggerai-java/build/reports/
+
+# Temporary files
+mloggerai-java/build/tmp/
+
+# IDE files
+mloggerai-java/*.iml
+mloggerai-java/.idea/
+mloggerai-java/.vscode/
+mloggerai-java/.env
