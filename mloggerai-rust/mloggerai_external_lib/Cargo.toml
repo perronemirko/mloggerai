@@ -1,0 +1,23 @@
+[package]
+name = "mloggerai"
+version = "0.0.1"
+edition = "2024"
+description = "Libreria Rust per analizzare log ed ottenere soluzioni AI tramite OpenAI Client On-Prem On-Cloud"
+license = "MIT"
+authors = ["Mirko Perrone <USE github ISSUE section>"]
+description = "Libreria Rust per analizzare log ed ottenere soluzioni AI tramite OpenAI"
+license = "MIT"
+repository = "https://github.com/tuo-utente/error_solver_lib"
+readme = "README.md"
+keywords = ["ai", "openai", "logs", "errorsolver"]
+categories = ["development-tools", "algorithms"]
+
+[dependencies]
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+dotenv = "0.15"
+
+[lib]
+name = "error_solver"
+path = "src/lib.rs"
