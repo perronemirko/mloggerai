@@ -267,3 +267,10 @@ mloggerai-c++/ENV/
 mloggerai-c++/env.bak/
 mloggerai-c++/build.bak/
 mloggerai-c++/logs
+#Environments RUST
+mloggerai-rust/logs
+mloggerai-rust/target
+mloggerai-rust/.env
+mloggerai-rust/mloggerai_external_lib/.env
+mloggerai-rust/mloggerai_external_lib/target
+mloggerai-rust/mloggerai_external_lib/logs
