@@ -1,7 +1,7 @@
 #include "ErrorSolver.hpp"
-#include <dotenv.h>
 #include <cstdlib>
 #include <iostream>
+#include <laserpants/dotenv/dotenv.h>
 
 int main(int argc, char* argv[]) {
     // Carica il file .env
@@ -11,7 +11,8 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        dotenv::init(env_file);
+        // dotenv::init();
+        dotenv::init(env_file.c_str());
         std::cout << "✅ File " << env_file << " caricato correttamente.\n";
     } catch (const std::exception& e) {
         std::cerr << "⚠️ Impossibile caricare " << env_file << ": " << e.what() << "\n";

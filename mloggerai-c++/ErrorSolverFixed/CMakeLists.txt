@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
+# ----------------------------
 # nlohmann/json
+# ----------------------------
 FetchContent_Declare(
     json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
@@ -14,7 +16,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(json)
 
+# ----------------------------
 # cpr
+# ----------------------------
 FetchContent_Declare(
     cpr
     GIT_REPOSITORY https://github.com/libcpr/cpr.git
@@ -23,20 +27,35 @@ FetchContent_Declare(
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 FetchContent_MakeAvailable(cpr)
 
-# dotenv-cpp
+# ----------------------------
+# dotenv-cpp (header-only manual setup)
+# ----------------------------
 FetchContent_Declare(
     dotenv
-    GIT_REPOSITORY https://github.com/troldal/dotenv-cpp.git
+    GIT_REPOSITORY https://github.com/laserpants/dotenv-cpp.git
     GIT_TAG master
 )
 FetchContent_MakeAvailable(dotenv)
 
-# ---- Libreria ----
+# Create the library manually since dotenv-cpp is header-only
+add_library(dotenv-cpp INTERFACE)
+target_include_directories(dotenv-cpp INTERFACE ${dotenv_SOURCE_DIR}/include)
+
+# Create alias
+add_library(dotenv::dotenv ALIAS dotenv-cpp)
+
+# ----------------------------
+# ErrorSolver library
+# ----------------------------
 add_library(ErrorSolver STATIC src/ErrorSolver.cpp)
 target_include_directories(ErrorSolver PUBLIC include)
 target_link_libraries(ErrorSolver PUBLIC cpr nlohmann_json::nlohmann_json)
 
-# ---- Esempio ----
+# ----------------------------
+# Example executable
+# ----------------------------
 add_executable(ErrorSolver_example examples/main.cpp)
 target_include_directories(ErrorSolver_example PRIVATE include)
+
+# Link libraries AFTER executable is created
 target_link_libraries(ErrorSolver_example PRIVATE ErrorSolver dotenv::dotenv)
