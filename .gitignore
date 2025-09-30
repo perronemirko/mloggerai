@@ -256,3 +256,14 @@ mloggerai-java/*.iml
 mloggerai-java/.idea/
 mloggerai-java/.vscode/
 mloggerai-java/.env
+
+# Environments c++
+mloggerai-c++/.env
+mloggerai-c++/.envrc
+mloggerai-c++/.venv
+mloggerai-c++/env/
+mloggerai-c++/build/
+mloggerai-c++/ENV/
+mloggerai-c++/env.bak/
+mloggerai-c++/build.bak/
+mloggerai-c++/logs
