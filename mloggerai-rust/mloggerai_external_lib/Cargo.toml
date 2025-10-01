@@ -7,9 +7,9 @@ license = "MIT"
 authors = ["Mirko Perrone <USE github ISSUE section>"]
 description = "Libreria Rust per analizzare log ed ottenere soluzioni AI tramite OpenAI"
 license = "MIT"
-repository = "https://github.com/tuo-utente/error_solver_lib"
+repository = "https://github.com/perronemirko/mloggerai/tree/main/mloggerai-rust"
 readme = "README.md"
-keywords = ["ai", "openai", "logs", "errorsolver"]
+keywords = ["ai", "openai", "logs", "errorsolver","Ollama", "llama.cpp" ,"lm-studio", "OpenApi", "Logger", "LLM" ]
 categories = ["development-tools", "algorithms"]
 
 [dependencies]
