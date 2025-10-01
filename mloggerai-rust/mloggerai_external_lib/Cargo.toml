@@ -2,10 +2,8 @@
 name = "mloggerai"
 version = "0.0.1"
 edition = "2024"
-description = "Libreria Rust per analizzare log ed ottenere soluzioni AI tramite OpenAI Client On-Prem On-Cloud"
-license = "MIT"
+description = "Rust library for analyzing logs and obtaining AI solutions via OpenAI Client On-Prem or On-Cloud"
 authors = ["Mirko Perrone <USE github ISSUE section>"]
-description = "Libreria Rust per analizzare log ed ottenere soluzioni AI tramite OpenAI"
 license = "MIT"
 repository = "https://github.com/perronemirko/mloggerai/tree/main/mloggerai-rust"
 readme = "README.md"
