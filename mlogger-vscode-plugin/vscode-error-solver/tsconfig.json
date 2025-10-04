@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",            // necessario per AsyncIterable
+    "lib": ["ES2018", "DOM"],      // DOM include URL, Request, Response, FormData ecc.
+    "module": "commonjs",
+    "outDir": "out",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true           // evita errori nei tipi di node_modules come Axios
+  },
+  "exclude": ["node_modules", ".vscode"]
+}

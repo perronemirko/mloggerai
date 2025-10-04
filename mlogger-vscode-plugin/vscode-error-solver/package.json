@@ -1,0 +1,44 @@
+{
+  "name": "vscode-error-solver",
+  "displayName": "Error Solver",
+  "description": "Plugin VS Code con log e suggerimenti AI in tempo reale",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "main": "./out/extension.js",
+  "files": [
+    "out"
+  ],
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chokidar": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/chokidar": "^1.7.5",
+    "@types/node": "^24.6.2",
+    "@types/vscode": "^1.80.0",
+    "archiver": "^5.3.1",
+    "typescript": "^5.2.2"
+  },
+  "activationEvents": [
+    "onCommand:errorsolver.openPanel",
+    "onCommand:errorsolver.watchLogs"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "errorsolver.openPanel",
+        "title": "ErrorSolver: Apri pannello"
+      },
+      {
+        "command": "errorsolver.toggleWatch",
+        "title": "ErrorSolver: Monitora file di log"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tuo-username/vscode-error-solver.git"
+  }
+}
