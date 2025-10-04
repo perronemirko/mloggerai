@@ -40,6 +40,22 @@ export function activate(context: vscode.ExtensionContext) {
                 close: () => { },
 
                 handleInput: async (data: string) => {
+                    // Gestisci Tab (autocompletamento)
+                    if (data === '\t') {
+                        const suggestions = await getAutocompleteSuggestions(outputBuffer);
+                        if (suggestions.length === 1) {
+                            // Una sola corrispondenza: completa automaticamente
+                            outputBuffer = suggestions[0];
+                            writeEmitter?.fire('\x1b[2K\r$ ' + outputBuffer);
+                        } else if (suggestions.length > 1) {
+                            // Più corrispondenze: mostra le opzioni
+                            writeEmitter?.fire('\r\n');
+                            suggestions.forEach(s => writeEmitter?.fire(s + '  '));
+                            writeEmitter?.fire('\r\n$ ' + outputBuffer);
+                        }
+                        return;
+                    }
+
                     // Gestisci backspace
                     if (data === '\x7f') {
                         if (outputBuffer.length > 0) {
@@ -69,6 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
                         const command = outputBuffer.trim();
                         outputBuffer = '';
 
+
                         // Esegui il comando reale
                         await executeCommand(command);
 
@@ -87,6 +104,65 @@ export function activate(context: vscode.ExtensionContext) {
             activeTerminal.show();
         })
     );
+
+    // 🔹 Funzione per autocompletamento
+    async function getAutocompleteSuggestions(partial: string): Promise<string[]> {
+        return new Promise((resolve) => {
+            const { spawn } = require('child_process');
+            const fs = require('fs');
+            const path = require('path');
+
+            const parts = partial.split(' ');
+            const lastPart = parts[parts.length - 1];
+
+            // Se è il primo token, cerca comandi nel PATH
+            if (parts.length === 1) {
+                const pathEnv = process.env.PATH || '';
+                const pathDirs = pathEnv.split(path.delimiter);
+                const suggestions = new Set<string>();
+
+                let checked = 0;
+                pathDirs.forEach(dir => {
+                    try {
+                        const files = fs.readdirSync(dir);
+                        files.forEach((file: string) => {
+                            if (file.startsWith(lastPart)) {
+                                suggestions.add(file);
+                            }
+                        });
+                    } catch (e) {
+                        // Directory non accessibile
+                    }
+                    checked++;
+                    if (checked === pathDirs.length) {
+                        resolve(Array.from(suggestions).slice(0, 50));
+                    }
+                });
+
+                if (pathDirs.length === 0) resolve([]);
+            } else {
+                // Completa file/directory
+                const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+                const searchPath = path.isAbsolute(lastPart) ? lastPart : path.join(cwd, lastPart);
+                const dir = path.dirname(searchPath);
+                const base = path.basename(searchPath);
+
+                try {
+                    const files = fs.readdirSync(dir);
+                    const matches = files
+                        .filter((f: string) => f.startsWith(base))
+                        .map((f: string) => {
+                            const fullPath = path.join(dir, f);
+                            const isDir = fs.statSync(fullPath).isDirectory();
+                            return parts.slice(0, -1).join(' ') + ' ' + f + (isDir ? '/' : '');
+                        });
+                    resolve(matches.slice(0, 50));
+                } catch (e) {
+                    resolve([]);
+                }
+            }
+        });
+    }
 
     // 🔹 Esegui comando e cattura output
     async function executeCommand(command: string) {
@@ -254,7 +330,7 @@ class ErrorSolverPanel {
         }
     }
 
-    private _getHtml(): string {
+private _getHtml(): string {
         return `
         <!DOCTYPE html>
         <html lang="it">
@@ -439,7 +515,6 @@ class ErrorSolverPanel {
         </html>`;
     }
 
-
     public appendLog(text: string) {
         if (this._isReady) {
             this._panel.webview.postMessage({ command: 'log', text });
@@ -461,3 +536,6 @@ export function deactivate() {
     processedLines.clear();
     outputBuffer = '';
 }
+
+
+
