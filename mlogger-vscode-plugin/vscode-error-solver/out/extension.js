@@ -124,7 +124,7 @@ async function queryAI(log) {
         return "Errore chiamando l’AI locale: " + e.message;
     }
 }
-// 🔹 Pannello WebView
+// 🔹 WebView Panel
 class ErrorSolverPanel {
     static createOrShow(extensionUri) {
         var _a;
