@@ -39,25 +39,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
-const fs = __importStar(require("fs"));
-const axios_1 = __importDefault(require("axios"));
+const fs = __importStar(require("fs/promises"));
 const chokidar_1 = __importDefault(require("chokidar"));
+const axios_1 = __importDefault(require("axios"));
 let watcher = null;
-let lastSize = 0;
 const processedLines = new Set();
 let debounceTimeout = null;
+// 🔹 Funzione per leggere le ultime N righe
+async function readLastLines(filePath, n = 10) {
+    try {
+        const content = await fs.readFile(filePath, 'utf8');
+        const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
+        return lines.slice(-n);
+    }
+    catch (_a) {
+        return [];
+    }
+}
 function activate(context) {
-    // 🔹 Comando per aprire il pannello manualmente
     context.subscriptions.push(vscode.commands.registerCommand('errorsolver.openPanel', () => {
         ErrorSolverPanel.createOrShow(context.extensionUri);
     }));
-    // 🔹 Comando per avviare/fermare il watcher
     context.subscriptions.push(vscode.commands.registerCommand('errorsolver.toggleWatch', async () => {
         if (watcher) {
             await watcher.close();
             watcher = null;
             processedLines.clear();
-            lastSize = 0;
             vscode.window.showInformationMessage("⏹️ Watcher fermato.");
             return;
         }
@@ -69,80 +76,34 @@ function activate(context) {
             return;
         const filePath = uri[0].fsPath;
         vscode.window.showInformationMessage(`📜 Monitoraggio file: ${filePath}`);
-        // 🔹 Apri automaticamente il pannello se non esiste
         ErrorSolverPanel.createOrShow(context.extensionUri);
-        lastSize = 0;
         processedLines.clear();
         watcher = chokidar_1.default.watch(filePath, { persistent: true });
-        // Debounce per evitare più trigger rapidi
         const scheduleProcess = () => {
             if (debounceTimeout)
                 clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => processNewLines(filePath), 100);
+            debounceTimeout = setTimeout(() => processLastLines(filePath), 100);
         };
         watcher.on('change', scheduleProcess);
         watcher.on('error', (error) => {
-            if (error instanceof Error) {
-                vscode.window.showErrorMessage("Errore watcher: " + error.message);
-            }
-            else {
-                vscode.window.showErrorMessage("Errore watcher sconosciuto");
-            }
+            vscode.window.showErrorMessage(error instanceof Error ? `Errore watcher: ${error.message}` : "Errore watcher sconosciuto");
         });
     }));
 }
-// 🔹 Funzione che legge solo le nuove righe e chiama l’AI
-async function processNewLines(filePath) {
-    // fs.stat(filePath, async (err, stats) => {
-    //     if (err) return;
-    //     if (stats.size < lastSize) lastSize = 0; // reset se file ricreato
-    //     if (stats.size > lastSize) {
-    //         const fd = fs.openSync(filePath, 'r');
-    //         const buffer = Buffer.alloc(stats.size - lastSize);
-    //         fs.readSync(fd, buffer, 0, buffer.length, lastSize);
-    //         fs.closeSync(fd);
-    //         const newText = buffer.toString('utf8');
-    //         lastSize = stats.size;
-    //         // 🔹 Filtra solo righe d'errore e non duplicate
-    //         const errorLines = newText.split(/\r?\n/)
-    //             .filter(l => /error|exception|failed/i.test(l))
-    //             .filter(l => !processedLines.has(l));
-    //         for (const line of errorLines) {
-    //             processedLines.add(line);
-    //             ErrorSolverPanel.currentPanel?.appendLog("⚡ Log: " + line);
-    //             const response = await queryAI(line);
-    //             ErrorSolverPanel.currentPanel?.appendLog("📘 AI: " + response + "\n");
-    //         }
-    //     }
-    // });
-    fs.stat(filePath, async (err, stats) => {
-        var _a, _b;
-        if (err)
-            return;
-        // 🔹 Se il file è più piccolo di lastSize, significa che è stato ricreato o troncato
-        if (stats.size < lastSize) {
-            lastSize = 0;
-            processedLines.clear(); // opzionale: resetta anche le righe già processate
+// 🔹 Legge solo le ultime N righe e invia all'AI quelle nuove
+async function processLastLines(filePath) {
+    var _a, _b;
+    const lastLines = await readLastLines(filePath, 10);
+    const errorLines = lastLines.filter(l => /error|exception|failed/i.test(l));
+    for (const line of errorLines) {
+        if (!processedLines.has(line)) {
+            processedLines.add(line);
+            const timestamp = new Date().toLocaleTimeString();
+            (_a = ErrorSolverPanel.currentPanel) === null || _a === void 0 ? void 0 : _a.appendLog(`⚡ [${timestamp}] Log: ${line}`);
+            const response = await queryAI(line);
+            (_b = ErrorSolverPanel.currentPanel) === null || _b === void 0 ? void 0 : _b.appendLog(`📘 [${timestamp}] AI: ${response}\n`);
         }
-        if (stats.size > lastSize) {
-            const fd = fs.openSync(filePath, 'r');
-            const buffer = Buffer.alloc(stats.size - lastSize);
-            fs.readSync(fd, buffer, 0, buffer.length, lastSize);
-            fs.closeSync(fd);
-            const newText = buffer.toString('utf8');
-            lastSize = stats.size;
-            // 🔹 Filtra solo righe d'errore e non duplicate
-            const errorLines = newText.split(/\r?\n/)
-                .filter(l => /error|exception|failed/i.test(l))
-                .filter(l => !processedLines.has(l));
-            for (const line of errorLines) {
-                processedLines.add(line);
-                (_a = ErrorSolverPanel.currentPanel) === null || _a === void 0 ? void 0 : _a.appendLog("⚡ Log: " + line);
-                const response = await queryAI(line);
-                (_b = ErrorSolverPanel.currentPanel) === null || _b === void 0 ? void 0 : _b.appendLog("📘 AI: " + response + "\n");
-            }
-        }
-    });
+    }
 }
 // 🔹 Funzione per chiamare AI locale
 async function queryAI(log) {
@@ -231,7 +192,6 @@ class ErrorSolverPanel {
                     logDiv.textContent = '';
                 });
 
-                // Notifica all'estensione che il WebView è pronto
                 vscode.postMessage({ command: 'ready' });
 
                 window.addEventListener('message', event => {
@@ -259,5 +219,4 @@ function deactivate() {
         watcher = null;
     }
     processedLines.clear();
-    lastSize = 0;
 }

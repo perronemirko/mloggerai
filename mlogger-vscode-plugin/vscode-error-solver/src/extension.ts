@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import axios from 'axios';
 import chokidar, { FSWatcher } from 'chokidar';
 
@@ -9,18 +10,14 @@ const processedLines = new Set<string>();
 let debounceTimeout: NodeJS.Timeout | null = null;
 
 export function activate(context: vscode.ExtensionContext) {
-
-    // 🔹 Comando per aprire il pannello manualmente
     context.subscriptions.push(
         vscode.commands.registerCommand('errorsolver.openPanel', () => {
             ErrorSolverPanel.createOrShow(context.extensionUri);
         })
     );
 
-    // 🔹 Comando per avviare/fermare il watcher
     context.subscriptions.push(
         vscode.commands.registerCommand('errorsolver.toggleWatch', async () => {
-
             if (watcher) {
                 await watcher.close();
                 watcher = null;
@@ -38,8 +35,6 @@ export function activate(context: vscode.ExtensionContext) {
 
             const filePath = uri[0].fsPath;
             vscode.window.showInformationMessage(`📜 Monitoraggio file: ${filePath}`);
-
-            // 🔹 Apri automaticamente il pannello se non esiste
             ErrorSolverPanel.createOrShow(context.extensionUri);
 
             lastSize = 0;
@@ -47,7 +42,6 @@ export function activate(context: vscode.ExtensionContext) {
 
             watcher = chokidar.watch(filePath, { persistent: true });
 
-            // Debounce per evitare più trigger rapidi
             const scheduleProcess = () => {
                 if (debounceTimeout) clearTimeout(debounceTimeout);
                 debounceTimeout = setTimeout(() => processNewLines(filePath), 100);
@@ -56,51 +50,47 @@ export function activate(context: vscode.ExtensionContext) {
             watcher.on('change', scheduleProcess);
 
             watcher.on('error', (error) => {
-                if (error instanceof Error) {
-                    vscode.window.showErrorMessage("Errore watcher: " + error.message);
-                } else {
-                    vscode.window.showErrorMessage("Errore watcher sconosciuto");
-                }
+                vscode.window.showErrorMessage(error instanceof Error ? `Errore watcher: ${error.message}` : "Errore watcher sconosciuto");
             });
         })
     );
 }
 
-// 🔹 Funzione che legge solo le nuove righe e chiama l’AI
 async function processNewLines(filePath: string) {
-    fs.stat(filePath, async (err, stats) => {
-        if (err) return;
+    try {
+        const stats = await fs.stat(filePath);
 
-        // 🔹 Se il file è più piccolo di lastSize, significa che è stato ricreato o troncato
         if (stats.size < lastSize) {
             lastSize = 0;
-            processedLines.clear(); // opzionale: resetta anche le righe già processate
+            processedLines.clear();
         }
 
         if (stats.size > lastSize) {
-            const fd = fs.openSync(filePath, 'r');
+            const fd = await fs.open(filePath, 'r');
             const buffer = Buffer.alloc(stats.size - lastSize);
-            fs.readSync(fd, buffer, 0, buffer.length, lastSize);
-            fs.closeSync(fd);
+            await fd.read(buffer, 0, buffer.length, lastSize);
+            await fd.close();
+
             const newText = buffer.toString('utf8');
             lastSize = stats.size;
 
-            // 🔹 Filtra solo righe d'errore e non duplicate
             const errorLines = newText.split(/\r?\n/)
                 .filter(l => /error|exception|failed/i.test(l))
                 .filter(l => !processedLines.has(l));
 
             for (const line of errorLines) {
                 processedLines.add(line);
-                ErrorSolverPanel.currentPanel?.appendLog("⚡ Log: " + line);
+                const timestamp = new Date().toLocaleTimeString();
+                ErrorSolverPanel.currentPanel?.appendLog(`⚡ [${timestamp}] Log: ${line}`);
                 const response = await queryAI(line);
-                ErrorSolverPanel.currentPanel?.appendLog("📘 AI: " + response + "\n");
+                ErrorSolverPanel.currentPanel?.appendLog(`📘 [${timestamp}] AI: ${response}\n`);
             }
         }
-    });
+    } catch (err: any) {
+        vscode.window.showErrorMessage("Errore leggendo il file: " + err.message);
+    }
 }
 
-// 🔹 Funzione per chiamare AI locale
 async function queryAI(log: string): Promise<string> {
     try {
         const res = await axios.post("http://localhost:1234/v1/chat/completions", {
@@ -133,14 +123,12 @@ class ErrorSolverPanel {
             ErrorSolverPanel.currentPanel._panel.reveal(column);
             return;
         }
-
         const panel = vscode.window.createWebviewPanel(
             'errorSolver',
             'Error Solver',
             column || vscode.ViewColumn.One,
             { enableScripts: true }
         );
-
         ErrorSolverPanel.currentPanel = new ErrorSolverPanel(panel);
     }
 
@@ -149,7 +137,7 @@ class ErrorSolverPanel {
         this._panel.webview.html = this._getHtml();
 
         this._panel.webview.onDidReceiveMessage(message => {
-            if(message.command === 'ready'){
+            if (message.command === 'ready') {
                 this._isReady = true;
                 this._buffer.forEach(text => this._panel.webview.postMessage({ command: 'log', text }));
                 this._buffer = [];
@@ -162,9 +150,9 @@ class ErrorSolverPanel {
     public dispose() {
         ErrorSolverPanel.currentPanel = undefined;
         this._panel.dispose();
-        while(this._disposables.length){
+        while (this._disposables.length) {
             const d = this._disposables.pop();
-            if(d) d.dispose();
+            if (d) d.dispose();
         }
     }
 
@@ -200,7 +188,6 @@ class ErrorSolverPanel {
                     logDiv.textContent = '';
                 });
 
-                // Notifica all'estensione che il WebView è pronto
                 vscode.postMessage({ command: 'ready' });
 
                 window.addEventListener('message', event => {
@@ -215,7 +202,7 @@ class ErrorSolverPanel {
     }
 
     public appendLog(text: string) {
-        if(this._isReady){
+        if (this._isReady) {
             this._panel.webview.postMessage({ command: 'log', text });
         } else {
             this._buffer.push(text);
@@ -224,7 +211,7 @@ class ErrorSolverPanel {
 }
 
 export function deactivate() {
-    if(watcher){
+    if (watcher) {
         watcher.close();
         watcher = null;
     }
