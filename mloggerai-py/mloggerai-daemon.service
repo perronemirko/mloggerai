@@ -1,0 +1,17 @@
+[Unit]
+Description=ErrorSolver Daemon (monitora journal o comandi)
+After=network.target
+
+[Service]
+Type=simple
+User=<yourusername>
+WorkingDirectory=</path/to/your/project>
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 </path/to/your/project/mloggerai_daemon.py --journal>
+Restart=on-failure
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
