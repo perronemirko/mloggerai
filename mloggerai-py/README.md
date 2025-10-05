@@ -18,7 +18,7 @@ pip install "git+ssh://git@github.com/perronemirko/mloggerai.git"
 Usage Examples
 Example 1: Basic usage
 ```python
-from mloggerai.errosolver import ErrorSolver
+from mloggerai.errorsolver import ErrorSolver
 from dotenv import load_dotenv
 load_dotenv()  # Carica le variabili da .env
 def main():
@@ -61,7 +61,7 @@ vbnet
 Example 2: Using a custom log file and log level
 python
 ￼Copy code
-from mloogerai.errosolver import ErrorSolver
+from mloogerai.errorsolver import ErrorSolver
 import logging
 
 solver = ErrorSolver(
@@ -86,7 +86,7 @@ rust
 Example 3: Logging multiple exceptions
 python
 ￼Copy code
-from mloggerai.errosolver import ErrorSolver
+from mloggerai.errorsolver import ErrorSolver
 import logging
 
 solver = ErrorSolver(model="<YOUR_LLM_MODEL>")

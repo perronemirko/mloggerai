@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mloggerai"  # nome unico su PyPI
-version = "0.0.0.dev4"
+version = "0.0.0.dev5"
 description = "MLoggerAI: AI-powered Python traceback analyzer"
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [

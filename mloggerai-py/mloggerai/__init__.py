@@ -1,3 +1,3 @@
-from .errosolver import ErrorSolver
+from .errorsolver import ErrorSolver
 
 __all__ = ["ErrorSolver"]
