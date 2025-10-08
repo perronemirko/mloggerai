@@ -278,13 +278,13 @@ mloggerai-rust/mloggerai_external_lib/target
 mloggerai-rust/mloggerai_external_lib/logs
 ## Intellij plugin
 
-MloggerAIPlugin/build/
-MloggerAIPlugin/.kotlin/
-MloggerAIPlugin/.gradle/
-MloggerAIPlugin/.idea/
-MloggerAIPlugin/.vscode/
-MloggerAIPlugin/.gradle
-MloggerAIPlugin/.idea
-MloggerAIPlugin/.vscode
-MloggerAIPlugin/build
+mloggerai-intellij-plugin/build/
+mloggerai-intellij-plugin/.kotlin/
+mloggerai-intellij-plugin/.gradle/
+mloggerai-intellij-plugin/.idea/
+mloggerai-intellij-plugin/.vscode/
+mloggerai-intellij-plugin/.gradle
+mloggerai-intellij-plugin/.idea
+mloggerai-intellij-plugin/.vscode
+mloggerai-intellij-plugin/build
 
