@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # daemon_web.py
 import asyncio
 import re
@@ -8,7 +7,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from mloggerai.errorsolver import ErrorSolver
-
+from dotenv import load_dotenv
+load_dotenv()
 ERROR_KEYWORDS = ["error", "exception", "failed", "panic", "fatal", "traceback", "segfault"]
 EVENT_WINDOW_SECONDS = 1.5
 

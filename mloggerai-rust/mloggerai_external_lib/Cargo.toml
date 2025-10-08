@@ -3,11 +3,11 @@ name = "mloggerai"
 version = "0.0.1"
 edition = "2024"
 description = "Rust library for analyzing logs and obtaining AI solutions via OpenAI Client On-Prem or On-Cloud"
-authors = ["Mirko Perrone <USE github ISSUE section>"]
+authors = ["Mirko Perrone <bluethrushlinux@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/perronemirko/mloggerai/tree/main/mloggerai-rust"
 readme = "README.md"
-keywords = ["ai", "openai", "logs", "errorsolver","Ollama", "llama.cpp" ,"lm-studio", "OpenApi", "Logger", "LLM" ]
+keywords = ["ai", "openai", "logs", "mloggerai", "llm" ]
 categories = ["development-tools", "algorithms"]
 
 [dependencies]

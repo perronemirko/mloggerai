@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # docker_daemon.py
 import argparse
 import asyncio
@@ -189,15 +188,15 @@ html = """
 <title>ErrorSolver Docker Dashboard</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-body { background: #111; color: #ddd; font-family: monospace; height: 100vh; display: flex; flex-direction: column; margin: 0; }
+body { background: #111; color: #ddd; font-family: monospace; block-size: 100vh; display: flex; flex-direction: column; margin: 0; }
 #controls { padding: 0.5rem; }
 #log { flex-grow: 1; overflow-y: auto; padding: 1rem; }
-.card { background: #1a1a1a; margin-bottom: 0.5rem; border: 1px solid #333; }
+.card { background: #1a1a1a; margin-block-end: 0.5rem; border: 1px solid #333; }
 .card-header { font-weight: bold; color: #00ffcc; display: flex; justify-content: space-between; }
 .card-body { white-space: pre-wrap; }
 .error { color: #ff4444; }
 .solution { color: #88ff88; }
-.lang { color: #ffaa00; margin-left: 0.5rem; }
+.lang { color: #ffaa00; margin-inline-start: 0.5rem; }
 </style>
 </head>
 <body>
@@ -305,4 +304,6 @@ def main():
 
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()
     main()

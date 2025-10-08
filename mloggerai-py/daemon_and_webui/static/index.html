@@ -1,166 +1,386 @@
-<!-- <!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<title>ErrorSolver Daemon</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body { background: #121212; color: #eee; }
-#log { white-space: pre-wrap; background: #1e1e1e; padding: 1rem; height: 60vh; overflow-y: auto; border-radius: 0.25rem; }
-</style>
-</head>
-<body class="p-4">
-<div class="container">
-    <h2 class="mb-4">⚙️ ErrorSolver Daemon Web UI</h2>
-
-    <form id="form" class="row g-3 mb-3">
-        <div class="col-auto">
-            <select class="form-select" name="mode">
-                <option value="journal">Journalctl</option>
-                <option value="wrap">Command</option>
-            </select>
-        </div>
-        <div class="col-auto">
-            <input class="form-control" name="command" placeholder="Comando (solo wrap)">
-        </div>
-        <div class="col-auto">
-            <input class="form-control" name="pattern" placeholder="Filtro regex">
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-success" type="submit">Start</button>
-            <button class="btn btn-danger" type="button" id="stop">Stop</button>
-            <button class="btn btn-secondary" type="button" id="clear">Clear</button>
-        </div>
-    </form>
-
-    <div id="log" class="border"></div>
-</div>
-
-<script>
-const logDiv = document.getElementById('log');
-const ws = new WebSocket(`ws://${location.host}/ws`);
-
-ws.onmessage = ev => {
-    const msg = JSON.parse(ev.data);
-    logDiv.innerHTML += `\n\n🔴 ${msg.timestamp}\n${msg.error}\n💡 ${msg.solution}\n`;
-    logDiv.scrollTop = logDiv.scrollHeight;
-};
-
-document.getElementById('form').onsubmit = async e => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const response = await fetch('/start', { method: 'POST', body: formData });
-    const result = await response.json();
-    if(result.status === "ok"){
-        logDiv.innerHTML += "\n✅ Monitor avviato\n";
-    } else {
-        logDiv.innerHTML += `\n❌ ${result.message}\n`;
-    }
-    logDiv.scrollTop = logDiv.scrollHeight;
-};
-
-document.getElementById('stop').onclick = async () => {
-    const response = await fetch('/stop', { method: 'POST' });
-    const result = await response.json();
-    if(result.status === "ok"){
-        logDiv.innerHTML += "\n🛑 Monitor fermato\n";
-    } else {
-        logDiv.innerHTML += `\n❌ ${result.message}\n`;
-    }
-    logDiv.scrollTop = logDiv.scrollHeight;
-};
-
-document.getElementById('clear').onclick = () => {
-    logDiv.innerHTML = '';
-};
-</script>
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<title>ErrorSolver Daemon</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-html, body { height: 100%; margin: 0; padding: 0; background: #121212; color: #eee; }
-#log { white-space: pre-wrap; background: #1e1e1e; padding: 1rem; height: calc(100vh - 150px); overflow-y: auto; border-radius: 0.25rem; resize: vertical; }
-.container { height: 100%; display: flex; flex-direction: column; }
-.form-row { flex-wrap: wrap; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ErrorSolver Daemon</title>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        .animate-slide-down {
+            animation: slideDown 0.4s ease-out;
+        }
+        .error-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .error-card:hover {
+            transform: translateY(-4px) scale(1.01);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        #log::-webkit-scrollbar {
+            width: 8px;
+        }
+        #log::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #log::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark #log::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        #log::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .dark #log::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+    </style>
 </head>
-<body>
-<div class="container p-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>⚙️ ErrorSolver Daemon Web UI</h2>
-        <span id="status" class="badge bg-secondary">Fermo</span>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-slate-950 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+    
+    <!-- Header -->
+    <header class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <span class="material-icons text-white text-2xl">settings</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">ErrorSolver Daemon</h1>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">System Monitor & Error Detection</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div id="status" class="flex items-center space-x-2 px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                        <span class="w-2 h-2 rounded-full bg-gray-500"></span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Fermo</span>
+                    </div>
+
+                    <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all shadow-md">
+                        <span class="material-icons text-gray-800 dark:text-gray-200">dark_mode</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Control Panel -->
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 animate-slide-in">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                <span class="material-icons mr-2 text-orange-500">tune</span>
+                Pannello di Controllo
+            </h2>
+            
+            <form id="form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <span class="material-icons text-xs align-middle mr-1">category</span>
+                            Modalità
+                        </label>
+                        <select name="mode" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 dark:text-gray-100 transition-all">
+                            <option value="journal">Journalctl</option>
+                            <option value="wrap">Command</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <span class="material-icons text-xs align-middle mr-1">terminal</span>
+                            Comando
+                        </label>
+                        <input type="text" name="command" placeholder="Comando (solo wrap)" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <span class="material-icons text-xs align-middle mr-1">filter_alt</span>
+                            Filtro Regex
+                        </label>
+                        <input type="text" name="pattern" placeholder="Pattern regex" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <button type="submit" class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg shadow-lg transition-all duration-300 hover:scale-105 font-medium">
+                        <span class="material-icons text-sm">play_arrow</span>
+                        <span>Start</span>
+                    </button>
+                    
+                    <button type="button" id="stop" class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg shadow-lg transition-all duration-300 hover:scale-105 font-medium">
+                        <span class="material-icons text-sm">stop</span>
+                        <span>Stop</span>
+                    </button>
+                    
+                    <button type="button" id="clear" class="flex items-center space-x-2 px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg shadow-lg transition-all duration-300 hover:scale-105 font-medium">
+                        <span class="material-icons text-sm">delete_sweep</span>
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Error Cards Container -->
+        <div id="log" class="space-y-4" style="max-height: calc(100vh - 420px); overflow-y: auto;">
+            <!-- Empty State -->
+            <div id="emptyState" class="flex flex-col items-center justify-center h-96">
+                <div class="w-24 h-24 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-950 dark:to-red-950 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                    <span class="material-icons text-6xl text-gray-400 dark:text-gray-600">visibility</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">Nessun Errore</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-center max-w-md">
+                    In attesa di eventi dal sistema...
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-600 dark:text-gray-400">
+            ErrorSolver Daemon • Real-time Error Monitoring
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div id="errorModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden animate-slide-down border border-gray-300 dark:border-gray-700">
+            <div class="flex items-center justify-between p-6 border-b border-gray-300 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Dettaglio Errore</h2>
+                    <p id="modalTimestamp" class="text-sm text-gray-600 dark:text-gray-400 mt-1"></p>
+                </div>
+                <button id="closeModal" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <span class="material-icons text-gray-700 dark:text-gray-300">close</span>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto bg-white dark:bg-gray-900" style="max-height: calc(90vh - 180px);">
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Errore</h3>
+                    <div class="bg-red-50 dark:bg-red-950 border-l-4 border-red-500 p-4 rounded-r-lg">
+                        <pre id="modalErrorDetail" class="text-red-700 dark:text-red-300 whitespace-pre-wrap text-sm font-mono"></pre>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Soluzione Suggerita</h3>
+                    <div class="bg-green-50 dark:bg-green-950 border-l-4 border-green-500 p-4 rounded-r-lg">
+                        <div class="flex items-start space-x-3">
+                            <span class="material-icons text-green-600 dark:text-green-400 text-2xl">lightbulb</span>
+                            <p id="modalSolution" class="text-green-700 dark:text-green-300 text-sm leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end p-6 border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <button id="closeModalBtn" class="px-6 py-2 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors font-medium">
+                    Chiudi
+                </button>
+            </div>
+        </div>
     </div>
 
-    <form id="form" class="row g-2 mb-3">
-        <div class="col-auto">
-            <select class="form-select" name="mode">
-                <option value="journal">Journalctl</option>
-                <option value="wrap">Command</option>
-            </select>
-        </div>
-        <div class="col-auto">
-            <input class="form-control" name="command" placeholder="Comando (solo wrap)">
-        </div>
-        <div class="col-auto">
-            <input class="form-control" name="pattern" placeholder="Filtro regex">
-        </div>
-        <div class="col-auto d-flex gap-1">
-            <button class="btn btn-success" type="submit">Start</button>
-            <button class="btn btn-danger" type="button" id="stop">Stop</button>
-            <button class="btn btn-secondary" type="button" id="clear">Clear</button>
-        </div>
-    </form>
+    <script>
+        const logDiv = document.getElementById('log');
+        const emptyState = document.getElementById('emptyState');
+        const statusBadge = document.getElementById('status');
+        const themeToggle = document.getElementById('themeToggle');
+        const modal = document.getElementById('errorModal');
+        
+        // Theme management
+        const theme = {
+            current: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+            toggle() {
+                this.current = this.current === 'dark' ? 'light' : 'dark';
+                this.apply();
+            },
+            apply() {
+                if (this.current === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    themeToggle.querySelector('.material-icons').textContent = 'light_mode';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    themeToggle.querySelector('.material-icons').textContent = 'dark_mode';
+                }
+                localStorage.setItem('theme', this.current);
+            }
+        };
+        theme.apply();
+        themeToggle.addEventListener('click', () => theme.toggle());
 
-    <div id="log" class="flex-grow-1 border"></div>
-</div>
+        // WebSocket
+        const ws = new WebSocket(`ws://${location.host}/ws`);
 
-<script>
-const logDiv = document.getElementById('log');
-const statusBadge = document.getElementById('status');
-const ws = new WebSocket(`ws://${location.host}/ws`);
+        ws.onmessage = ev => {
+            const msg = JSON.parse(ev.data);
+            
+            emptyState.classList.add('hidden');
+            
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+            
+            const card = document.createElement('div');
+            card.className = 'error-card p-6 rounded-xl shadow-lg hover:shadow-2xl cursor-pointer border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 animate-slide-in';
+            
+            card.innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
+                            <span class="material-icons text-white">error_outline</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100">System Error</h3>
+                            <span class="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-orange-400 to-red-600 text-white rounded-full mt-1">
+                                Daemon
+                            </span>
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">${escapeHtml(msg.timestamp)}</span>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="bg-red-50 dark:bg-red-950 border-l-4 border-red-500 p-3 rounded-r">
+                        <p class="text-sm text-red-700 dark:text-red-300 font-mono line-clamp-2">${escapeHtml(msg.error)}</p>
+                    </div>
+                    
+                    <div class="bg-green-50 dark:bg-green-950 border-l-4 border-green-500 p-3 rounded-r">
+                        <div class="flex items-start space-x-2">
+                            <span class="material-icons text-green-600 dark:text-green-400 text-lg mt-0.5">lightbulb</span>
+                            <p class="text-sm text-green-700 dark:text-green-300 line-clamp-2">${escapeHtml(msg.solution)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => {
+                document.getElementById('modalTimestamp').textContent = msg.timestamp;
+                document.getElementById('modalErrorDetail').textContent = msg.error;
+                document.getElementById('modalSolution').textContent = msg.solution;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+            
+            logDiv.appendChild(card);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
 
-ws.onmessage = ev => {
-    const msg = JSON.parse(ev.data);
-    logDiv.innerHTML += `\n\n🔴 ${msg.timestamp}\n${msg.error}\n💡 ${msg.solution}\n`;
-    logDiv.scrollTop = logDiv.scrollHeight;
-};
+        // Modal controls
+        document.getElementById('closeModal').addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+        
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        });
 
-document.getElementById('form').onsubmit = async e => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const response = await fetch('/start', { method: 'POST', body: formData });
-    const result = await response.json();
-    if(result.status === "ok"){
-        logDiv.innerHTML += "\n✅ Monitor avviato\n";
-        statusBadge.textContent = "Attivo";
-        statusBadge.className = "badge bg-success";
-    } else {
-        logDiv.innerHTML += `\n❌ ${result.message}\n`;
-    }
-    logDiv.scrollTop = logDiv.scrollHeight;
-};
+        // Form submission
+        document.getElementById('form').onsubmit = async e => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/start', { method: 'POST', body: formData });
+            const result = await response.json();
+            
+            if (result.status === "ok") {
+                statusBadge.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-sm font-medium text-green-600 dark:text-green-400">Attivo</span>
+                `;
+                statusBadge.className = "flex items-center space-x-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-950 border border-green-300 dark:border-green-800";
+            }
+        };
 
-document.getElementById('stop').onclick = async () => {
-    const response = await fetch('/stop', { method: 'POST' });
-    const result = await response.json();
-    if(result.status === "ok"){
-        logDiv.innerHTML += "\n🛑 Monitor fermato\n";
-        statusBadge.textContent = "Fermo";
-        statusBadge.className = "badge bg-secondary";
-    } else {
-        logDiv.innerHTML += `\n❌ ${result.message}\n`;
-    }
-    logDiv.scrollTop = logDiv.scrollHeight;
-};
+        // Stop button
+        document.getElementById('stop').onclick = async () => {
+            const response = await fetch('/stop', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.status === "ok") {
+                statusBadge.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-gray-500"></span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Fermo</span>
+                `;
+                statusBadge.className = "flex items-center space-x-2 px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700";
+            }
+        };
 
-document.getElementById('clear').onclick = () => {
-    logDiv.innerHTML = '';
-};
-</script>
+        // Clear button
+        document.getElementById('clear').onclick = () => {
+            logDiv.innerHTML = '';
+            const empty = document.createElement('div');
+            empty.id = 'emptyState';
+            empty.className = 'flex flex-col items-center justify-center h-96';
+            empty.innerHTML = `
+                <div class="w-24 h-24 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-950 dark:to-red-950 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                    <span class="material-icons text-6xl text-gray-400 dark:text-gray-600">visibility</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">Nessun Errore</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-center max-w-md">
+                    In attesa di eventi dal sistema...
+                </p>
+            `;
+            logDiv.appendChild(empty);
+        };
+    </script>
 </body>
 </html>

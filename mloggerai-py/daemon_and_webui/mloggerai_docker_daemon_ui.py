@@ -12,7 +12,9 @@ from mloggerai.errorsolver import ErrorSolver
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 import uvicorn
+from dotenv import load_dotenv
 
+load_dotenv()
 # --- PATTERN MULTI-LINGUAGGIO ---
 LANGUAGE_PATTERNS = {
     "python": re.compile(r"(Traceback \(most recent call last\):|File \".+\.py\", line \d+|Exception|Error: .+)", re.IGNORECASE),
@@ -249,6 +251,7 @@ async def main_async(args):
 
     config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="warning")
     server = uvicorn.Server(config)
+
     await server.serve()
 
 
