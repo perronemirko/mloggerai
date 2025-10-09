@@ -49,6 +49,6 @@
         <applicationConfigurable
                 instance="com.mloggerai.plugin.MLoggerAISettingsConfigurable"
                 id="com.mloggerai.plugin.settings"
-                displayName="MLoggerAI"/>
+                displayName="MLoggerAI Settings"/>
     </extensions>
 </idea-plugin>

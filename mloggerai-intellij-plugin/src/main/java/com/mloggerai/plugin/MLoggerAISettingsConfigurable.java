@@ -9,6 +9,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
+import okhttp3.*;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,10 +18,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Iterator;
-import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class MLoggerAISettingsConfigurable implements Configurable {
 
@@ -36,6 +35,7 @@ public class MLoggerAISettingsConfigurable implements Configurable {
     public JPanel mainPanel;
 
     private boolean isLmStudioMode = false;
+    private OkHttpClient httpClient;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -46,6 +46,11 @@ public class MLoggerAISettingsConfigurable implements Configurable {
     @Nullable
     @Override
     public JComponent createComponent() {
+        httpClient = new OkHttpClient.Builder()
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.SECONDS)
+                .build();
+
         serverUrlField = new JBTextField();
         modelNameField = new JBTextField();
         modelNameDropdown = new JComboBox<>();
@@ -157,60 +162,53 @@ public class MLoggerAISettingsConfigurable implements Configurable {
 
                 urlString += "/models";
 
-                URL url = new URL(urlString);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
+                Request request = new Request.Builder()
+                        .url(urlString)
+                        .get()
+                        .build();
 
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    Scanner scanner = new Scanner(conn.getInputStream());
-                    StringBuilder sb = new StringBuilder();
-                    while (scanner.hasNextLine()) {
-                        sb.append(scanner.nextLine());
-                    }
-                    scanner.close();
+                try (Response response = httpClient.newCall(request).execute()) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        String responseBody = response.body().string();
 
-                    ObjectMapper mapper = new ObjectMapper();
-                    JsonNode root = mapper.readTree(sb.toString());
-                    JsonNode dataArray = root.path("data");
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode root = mapper.readTree(responseBody);
+                        JsonNode dataArray = root.path("data");
 
-                    SwingUtilities.invokeLater(() -> {
-                        modelNameDropdown.removeAllItems();
+                        SwingUtilities.invokeLater(() -> {
+                            modelNameDropdown.removeAllItems();
 
-                        if (dataArray.isArray() && dataArray.size() > 0) {
-                            Iterator<JsonNode> it = dataArray.elements();
-                            boolean hasModels = false;
+                            if (dataArray.isArray() && dataArray.size() > 0) {
+                                Iterator<JsonNode> it = dataArray.elements();
+                                boolean hasModels = false;
 
-                            while (it.hasNext()) {
-                                JsonNode modelNode = it.next();
-                                String id = modelNode.path("id").asText();
-                                if (!id.isEmpty()) {
-                                    modelNameDropdown.addItem(id);
-                                    hasModels = true;
+                                while (it.hasNext()) {
+                                    JsonNode modelNode = it.next();
+                                    String id = modelNode.path("id").asText();
+                                    if (!id.isEmpty()) {
+                                        modelNameDropdown.addItem(id);
+                                        hasModels = true;
+                                    }
                                 }
-                            }
 
-                            if (hasModels) {
-                                if (valueToSelect != null && !valueToSelect.isEmpty()) {
-                                    modelNameDropdown.setSelectedItem(valueToSelect);
+                                if (hasModels) {
+                                    if (valueToSelect != null && !valueToSelect.isEmpty()) {
+                                        modelNameDropdown.setSelectedItem(valueToSelect);
+                                    }
+                                } else {
+                                    modelNameDropdown.addItem("Nessun modello trovato");
                                 }
                             } else {
-                                modelNameDropdown.addItem("Nessun modello trovato");
+                                modelNameDropdown.addItem("Nessun modello disponibile");
                             }
-                        } else {
-                            modelNameDropdown.addItem("Nessun modello disponibile");
-                        }
-                    });
-                } else {
-                    SwingUtilities.invokeLater(() -> {
-                        modelNameDropdown.removeAllItems();
-                        try {
-                            modelNameDropdown.addItem("Errore HTTP: " + conn.getResponseCode());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                        });
+                    } else {
+                        int code = response.code();
+                        SwingUtilities.invokeLater(() -> {
+                            modelNameDropdown.removeAllItems();
+                            modelNameDropdown.addItem("Errore HTTP: " + code);
+                        });
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
