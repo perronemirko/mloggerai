@@ -1,26 +1,41 @@
 package com.mloggerai.plugin;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.components.JBPasswordField;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.Scanner;
 
 public class MLoggerAISettingsConfigurable implements Configurable {
 
-    private JBTextField serverUrlField;
-    private JBTextField modelNameField;
-    private JTextArea systemPromptField;
-    private JBPasswordField systemServiceKeyField;
-    private JBTextField outputLanguageField;
-    private JBTextField temperatureField;
-    private JBTextField maxTokensField;
-    private JPanel mainPanel;
+    public JBTextField serverUrlField;
+    public JBTextField modelNameField;
+    public JComboBox<String> modelNameDropdown;
+    public JPanel modelPanel;
+    public JTextArea systemPromptField;
+    public JBPasswordField systemServiceKeyField;
+    public JBTextField outputLanguageField;
+    public JBTextField temperatureField;
+    public JBTextField maxTokensField;
+    public JPanel mainPanel;
+
+    private boolean isLmStudioMode = false;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -33,135 +48,255 @@ public class MLoggerAISettingsConfigurable implements Configurable {
     public JComponent createComponent() {
         serverUrlField = new JBTextField();
         modelNameField = new JBTextField();
+        modelNameDropdown = new JComboBox<>();
+
+        modelPanel = new JPanel(new BorderLayout());
+        modelPanel.add(modelNameField, BorderLayout.CENTER);
 
         systemPromptField = new JTextArea(5, 40);
         systemPromptField.setLineWrap(true);
         systemPromptField.setWrapStyleWord(true);
-        JScrollPane systemPromptScroll = new JScrollPane(systemPromptField);
+        JBScrollPane systemPromptScroll = new JBScrollPane(systemPromptField);
 
         systemServiceKeyField = new JBPasswordField();
         outputLanguageField = new JBTextField();
         temperatureField = new JBTextField();
         maxTokensField = new JBTextField();
 
+        systemServiceKeyField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                SwingUtilities.invokeLater(() -> checkServiceKeyAndSwitchInput());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                SwingUtilities.invokeLater(() -> checkServiceKeyAndSwitchInput());
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                SwingUtilities.invokeLater(() -> checkServiceKeyAndSwitchInput());
+            }
+        });
+
         mainPanel = FormBuilder.createFormBuilder()
-                .addLabeledComponent(
-                        new JBLabel(MLoggerAIBundle.message("settings.serverUrl")),
-                        serverUrlField,
-                        1,
-                        false)
-                .addLabeledComponent(
-                        new JBLabel(MLoggerAIBundle.message("settings.modelName")),
-                        modelNameField,
-                        1,
-                        false)
-                .addLabeledComponent(
-                        new JBLabel(MLoggerAIBundle.message("settings.systemPrompt")),
-                        systemPromptScroll,
-                        1,
-                        false)
-                .addLabeledComponent(
-                        new JBLabel(MLoggerAIBundle.message("settings.serviceKey")),
-                        systemServiceKeyField,
-                        1,
-                        false)
-                .addLabeledComponent(
-                        new JBLabel(MLoggerAIBundle.message("settings.outputLanguage")),
-                        outputLanguageField,
-                        1,
-                        false)
-                .addLabeledComponent(
-                        new JBLabel(MLoggerAIBundle.message("settings.temperature")),
-                        temperatureField,
-                        1,
-                        false)
-                .addLabeledComponent(
-                        new JBLabel(MLoggerAIBundle.message("settings.maxTokens")),
-                        maxTokensField,
-                        1,
-                        false)
+                .addLabeledComponent(new JBLabel(MLoggerAIBundle.message("settings.serverUrl")),
+                        serverUrlField, 1, false)
+                .addLabeledComponent(new JBLabel(MLoggerAIBundle.message("settings.modelName")),
+                        modelPanel, 1, false)
+                .addLabeledComponent(new JBLabel(MLoggerAIBundle.message("settings.systemPrompt")),
+                        systemPromptScroll, 1, false)
+                .addLabeledComponent(new JBLabel(MLoggerAIBundle.message("settings.serviceKey")),
+                        systemServiceKeyField, 1, false)
+                .addLabeledComponent(new JBLabel(MLoggerAIBundle.message("settings.outputLanguage")),
+                        outputLanguageField, 1, false)
+                .addLabeledComponent(new JBLabel(MLoggerAIBundle.message("settings.temperature")),
+                        temperatureField, 1, false)
+                .addLabeledComponent(new JBLabel(MLoggerAIBundle.message("settings.maxTokens")),
+                        maxTokensField, 1, false)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
 
         mainPanel.setBorder(JBUI.Borders.empty(10));
 
         reset();
+
+        // Forza il check dopo che tutto è inizializzato
+        SwingUtilities.invokeLater(() -> checkServiceKeyAndSwitchInput());
+
         return mainPanel;
+    }
+
+    private void checkServiceKeyAndSwitchInput() {
+        String key = String.valueOf(systemServiceKeyField.getPassword()).trim();
+        boolean shouldUseLmStudio = "lm-studio".equalsIgnoreCase(key);
+
+        if (shouldUseLmStudio && !isLmStudioMode) {
+            // Passa al dropdown
+            String currentValue = modelNameField.getText();
+            modelPanel.removeAll();
+            modelPanel.add(modelNameDropdown, BorderLayout.CENTER);
+            modelPanel.revalidate();
+            modelPanel.repaint();
+            isLmStudioMode = true;
+
+            fetchAndPopulateModelDropdown(currentValue);
+
+        } else if (!shouldUseLmStudio && isLmStudioMode) {
+            // Torna al campo testo
+            String selectedValue = (String) modelNameDropdown.getSelectedItem();
+            if (selectedValue != null && !selectedValue.startsWith("Errore") &&
+                    !selectedValue.startsWith("Caricamento") && !selectedValue.startsWith("Nessun")) {
+                modelNameField.setText(selectedValue);
+            }
+            modelPanel.removeAll();
+            modelPanel.add(modelNameField, BorderLayout.CENTER);
+            modelPanel.revalidate();
+            modelPanel.repaint();
+            isLmStudioMode = false;
+        }
+    }
+
+    private void fetchAndPopulateModelDropdown(String valueToSelect) {
+        SwingUtilities.invokeLater(() -> {
+            modelNameDropdown.removeAllItems();
+            modelNameDropdown.addItem("Caricamento modelli...");
+        });
+
+        new Thread(() -> {
+            try {
+                String urlString = serverUrlField.getText().trim();
+                if (urlString.isEmpty()) {
+                    urlString = "http://localhost:1234/v1";
+                }
+
+                if (urlString.endsWith("/")) {
+                    urlString = urlString.substring(0, urlString.length() - 1);
+                }
+
+                urlString += "/models";
+
+                URL url = new URL(urlString);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    Scanner scanner = new Scanner(conn.getInputStream());
+                    StringBuilder sb = new StringBuilder();
+                    while (scanner.hasNextLine()) {
+                        sb.append(scanner.nextLine());
+                    }
+                    scanner.close();
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode root = mapper.readTree(sb.toString());
+                    JsonNode dataArray = root.path("data");
+
+                    SwingUtilities.invokeLater(() -> {
+                        modelNameDropdown.removeAllItems();
+
+                        if (dataArray.isArray() && dataArray.size() > 0) {
+                            Iterator<JsonNode> it = dataArray.elements();
+                            boolean hasModels = false;
+
+                            while (it.hasNext()) {
+                                JsonNode modelNode = it.next();
+                                String id = modelNode.path("id").asText();
+                                if (!id.isEmpty()) {
+                                    modelNameDropdown.addItem(id);
+                                    hasModels = true;
+                                }
+                            }
+
+                            if (hasModels) {
+                                if (valueToSelect != null && !valueToSelect.isEmpty()) {
+                                    modelNameDropdown.setSelectedItem(valueToSelect);
+                                }
+                            } else {
+                                modelNameDropdown.addItem("Nessun modello trovato");
+                            }
+                        } else {
+                            modelNameDropdown.addItem("Nessun modello disponibile");
+                        }
+                    });
+                } else {
+                    SwingUtilities.invokeLater(() -> {
+                        modelNameDropdown.removeAllItems();
+                        try {
+                            modelNameDropdown.addItem("Errore HTTP: " + conn.getResponseCode());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                SwingUtilities.invokeLater(() -> {
+                    modelNameDropdown.removeAllItems();
+                    modelNameDropdown.addItem("Errore: " + e.getMessage());
+                });
+            }
+        }).start();
     }
 
     @Override
     public boolean isModified() {
-        MLoggerAISettings settings = MLoggerAISettings.getInstance();
+        MLoggerAISettings s = MLoggerAISettings.getInstance();
 
-        boolean urlModified = !serverUrlField.getText().equals(settings.getServerUrl());
-        boolean modelModified = !modelNameField.getText().equals(settings.getModelName());
-        boolean systemPromptModified = !systemPromptField.getText().equals(settings.getSystemPrompt());
-        boolean systemServiceKeyModified = !String.valueOf(systemServiceKeyField.getPassword()).equals(settings.getSystemServiceKey());
-        boolean outputLanguageModified = !outputLanguageField.getText().equals(settings.getOutputLanguage());
+        boolean urlMod = !serverUrlField.getText().equals(s.getServerUrl());
 
-        boolean temperatureModified = false;
+        String currentModel = isLmStudioMode
+                ? (String) modelNameDropdown.getSelectedItem()
+                : modelNameField.getText();
+        boolean modelMod = currentModel == null || !currentModel.equals(s.getModelName());
+
+        boolean promptMod = !systemPromptField.getText().equals(s.getSystemPrompt());
+        boolean keyMod = !String.valueOf(systemServiceKeyField.getPassword())
+                .equals(s.getSystemServiceKey());
+        boolean outLangMod = !outputLanguageField.getText().equals(s.getOutputLanguage());
+
+        boolean tempMod = false;
         try {
-            double fieldTemp = Double.parseDouble(temperatureField.getText());
-            temperatureModified = Math.abs(fieldTemp - settings.getTemperature()) > 0.0001;
-        } catch (NumberFormatException e) {
-            temperatureModified = true;
+            double t = Double.parseDouble(temperatureField.getText());
+            tempMod = Math.abs(t - s.getTemperature()) > 0.0001;
+        } catch (NumberFormatException ignored) {
+            tempMod = true;
         }
 
-        boolean maxTokensModified = false;
+        boolean tokensMod = false;
         try {
-            int fieldTokens = Integer.parseInt(maxTokensField.getText());
-            maxTokensModified = fieldTokens != settings.getMaxTokensField();
-        } catch (NumberFormatException e) {
-            maxTokensModified = true;
+            int tk = Integer.parseInt(maxTokensField.getText());
+            tokensMod = tk != s.getMaxTokensField();
+        } catch (NumberFormatException ignored) {
+            tokensMod = true;
         }
 
-        return urlModified ||
-                modelModified ||
-                systemPromptModified ||
-                systemServiceKeyModified ||
-                outputLanguageModified ||
-                temperatureModified ||
-                maxTokensModified;
+        return urlMod || modelMod || promptMod || keyMod || outLangMod || tempMod || tokensMod;
     }
 
     @Override
     public void apply() {
-        MLoggerAISettings settings = MLoggerAISettings.getInstance();
-        settings.setServerUrl(serverUrlField.getText());
-        settings.setModelName(modelNameField.getText());
-        settings.setSystemPrompt(systemPromptField.getText());
-        settings.setSystemServiceKey(String.valueOf(systemServiceKeyField.getPassword()));
-        settings.setOutputLanguage(outputLanguageField.getText());
+        MLoggerAISettings s = MLoggerAISettings.getInstance();
 
-        try {
-            double temp = Double.parseDouble(temperatureField.getText());
-            if (temp >= 0.0 && temp <= 2.0) {
-                settings.setTemperature(temp);
-            }
-        } catch (NumberFormatException e) {
-            // Keep previous value on error
+        s.setServerUrl(serverUrlField.getText());
+
+        String modelToSave = isLmStudioMode
+                ? (String) modelNameDropdown.getSelectedItem()
+                : modelNameField.getText();
+        if (modelToSave != null && !modelToSave.startsWith("Errore") &&
+                !modelToSave.startsWith("Caricamento") && !modelToSave.startsWith("Nessun")) {
+            s.setModelName(modelToSave);
         }
 
+        s.setSystemPrompt(systemPromptField.getText());
+        s.setSystemServiceKey(String.valueOf(systemServiceKeyField.getPassword()));
+        s.setOutputLanguage(outputLanguageField.getText());
+
         try {
-            int tokens = Integer.parseInt(maxTokensField.getText());
-            if (tokens > 0) {
-                settings.setMaxTokens(tokens);
-            }
-        } catch (NumberFormatException e) {
-            // Keep previous value on error
-        }
+            double t = Double.parseDouble(temperatureField.getText());
+            if (t >= 0.0 && t <= 2.0) s.setTemperature(t);
+        } catch (NumberFormatException ignored) {}
+
+        try {
+            int tk = Integer.parseInt(maxTokensField.getText());
+            if (tk > 0) s.setMaxTokens(tk);
+        } catch (NumberFormatException ignored) {}
     }
 
     @Override
     public void reset() {
-        MLoggerAISettings settings = MLoggerAISettings.getInstance();
-        serverUrlField.setText(settings.getServerUrl());
-        modelNameField.setText(settings.getModelName());
-        systemPromptField.setText(settings.getSystemPrompt());
-        systemServiceKeyField.setText(settings.getSystemServiceKey());
-        outputLanguageField.setText(settings.getOutputLanguage());
-        temperatureField.setText(String.valueOf(settings.getTemperature()));
-        maxTokensField.setText(String.valueOf(settings.getMaxTokensField()));
+        MLoggerAISettings s = MLoggerAISettings.getInstance();
+
+        serverUrlField.setText(s.getServerUrl());
+        modelNameField.setText(s.getModelName());
+        systemPromptField.setText(s.getSystemPrompt());
+        systemServiceKeyField.setText(s.getSystemServiceKey());
+        outputLanguageField.setText(s.getOutputLanguage());
+        temperatureField.setText(String.valueOf(s.getTemperature()));
+        maxTokensField.setText(String.valueOf(s.getMaxTokensField()));
     }
 
     @Override
@@ -169,6 +304,8 @@ public class MLoggerAISettingsConfigurable implements Configurable {
         mainPanel = null;
         serverUrlField = null;
         modelNameField = null;
+        modelNameDropdown = null;
+        modelPanel = null;
         systemPromptField = null;
         systemServiceKeyField = null;
         outputLanguageField = null;

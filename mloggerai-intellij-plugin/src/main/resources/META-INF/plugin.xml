@@ -20,9 +20,10 @@
         Contact: <a href="mailto:bluethrushlinux@gmail.com">bluethrushlinux@gmail.com</a>
     </p>
     ]]></description>
+    <idea-version since-build="242" until-build="252.*"/>
 
     <change-notes><![CDATA[
-    <h3>0.0.1</h3>
+    <h3>0.0.3</h3>
     <ul>
         <li>Initial release</li>
         <li>Error detection from run configurations</li>
@@ -37,6 +38,7 @@
         <toolWindow
                 id="ErrorSolver"
                 anchor="right"
+                icon="/icons/icon.png"
                 factoryClass="com.mloggerai.ErrorSolverToolWindowFactory"/>
 
         <!-- Settings Service (Application Level) -->

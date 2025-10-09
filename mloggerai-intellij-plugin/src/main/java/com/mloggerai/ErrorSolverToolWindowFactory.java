@@ -7,6 +7,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +15,7 @@ import java.awt.*;
 public class ErrorSolverToolWindowFactory implements ToolWindowFactory {
 
     @Override
-    public void createToolWindowContent(Project project, ToolWindow toolWindow) {
+    public void createToolWindowContent(@NotNull Project project, ToolWindow toolWindow) {
         // Text area per i log
         JBTextArea textArea = new JBTextArea();
         textArea.setEditable(false);

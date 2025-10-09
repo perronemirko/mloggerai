@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.mloggerai.plugin"
-version = "0.0.1"
+version = "0.0.4"
 
 repositories {
     mavenCentral()
@@ -16,12 +16,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.json:json:20240303")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.1")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
+    implementation("org.json:json:20250517")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
 
     intellijPlatform {
         intellijIdeaCommunity("2024.2.4")
+        pycharmCommunity("2024.2.4")
         bundledPlugins(emptyList())
         instrumentationTools()
     }
@@ -37,7 +38,7 @@ intellijPlatform {
     pluginConfiguration {
         ideaVersion {
             sinceBuild.set("242")
-            untilBuild.set("290.*")
+            untilBuild.set("252.*")
         }
     }
 

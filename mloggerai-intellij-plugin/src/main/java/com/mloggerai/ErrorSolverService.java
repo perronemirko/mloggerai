@@ -20,6 +20,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -454,16 +455,16 @@ public class ErrorSolverService {
                         boolean b = exitCode == 0 && ERROR_PATTERN.matcher(allOutput).find();
                         if (!lastError.isEmpty() || exitCode != 0) {
 
-                            callRestAI(project, outputArea, activateDebug, allOutput, exitCode, event);
+                            callRestAI(project, outputArea, activateDebug, allOutput.append(Objects.requireNonNull(event.getProcessHandler().getProcessInput())), exitCode, event);
 
                         } else if (b) {
-                            callRestAI(project, outputArea, activateDebug, allOutput, exitCode, event);
+                            callRestAI(project, outputArea, activateDebug, allOutput.append(Objects.requireNonNull(event.getProcessHandler().getProcessInput())), exitCode, event);
                         } else {
                             if (activateDebug.isSelected()) {
                                 SwingUtilities.invokeLater(() ->
                                         outputArea.append("ℹ️ [DEBUG] Nessun errore da analizzare\n\n"));
                             }
-                            callRestAI(project, outputArea, activateDebug, allOutput, exitCode, event);
+                            callRestAI(project, outputArea, activateDebug, allOutput.append(Objects.requireNonNull(event.getProcessHandler().getProcessInput())), exitCode, event);
                         }
                         // Se il buffer non è completo, svuotalo
                         if (!bufferComplete[0] && !initialBuffer.isEmpty()) {

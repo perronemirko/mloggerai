@@ -288,3 +288,8 @@ mloggerai-intellij-plugin/.idea
 mloggerai-intellij-plugin/.vscode
 mloggerai-intellij-plugin/build
 
+### TS module
+mloggerai-ts/dist
+mloggerai-ts/logs
+mloggerai-ts/node_modules
+mloggerai-ts/package-lock.json
