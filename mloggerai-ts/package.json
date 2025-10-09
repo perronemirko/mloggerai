@@ -1,0 +1,27 @@
+{
+  "name": "mloggerai-ts",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "TypeScript library for analyzing error logs and proposing AI solutions via OpenAI API",
+  "main": "./dist/ErrorSolver.js",
+  "types": "./dist/ErrorSolver.d.ts",
+  "scripts": {
+    "dev": "ts-node-esm dist/examples/simple.js",
+    "build": "tsc",
+    "test": "ts-node-esm src/ErrorSolver.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "openai": "^4.56.0",
+    "winston": "^3.14.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.8",
+    "@types/winston": "^2.4.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
