@@ -1,5 +1,9 @@
 package com.mloggerai;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.intellij.execution.ExecutionListener;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessAdapter;
@@ -8,13 +12,12 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.messages.MessageBusConnection;
 import com.mloggerai.plugin.MLoggerAISettings;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -28,7 +31,13 @@ import java.util.regex.Pattern;
 
 public class ErrorSolverService {
 
-    private static final OkHttpClient client = new OkHttpClient();
+    private static final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build();
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(3);
     private static volatile boolean isInitialized = false;
     private static volatile MLoggerAISettings cachedSettings = null;
@@ -75,6 +84,17 @@ public class ErrorSolverService {
             Pattern.CASE_INSENSITIVE
     );
 
+    // Classe helper per mantenere il tipo di output
+    private static class LogEntry {
+        final String line;
+        final Key type;
+
+        LogEntry(String line, Key type) {
+            this.line = line;
+            this.type = type;
+        }
+    }
+
     private static MLoggerAISettings getSettings(Project project) {
         MLoggerAISettings settings = MLoggerAISettings.getInstance();
         if (settings == null ||
@@ -86,19 +106,31 @@ public class ErrorSolverService {
         return settings;
     }
 
-    private static JSONObject buildRequest(MLoggerAISettings settings, String text) {
-        return new JSONObject()
-                .put("model", settings.getModelName())
-                .put("temperature", settings.getTemperature())
-                .put("max_tokens", settings.getMaxTokensField())
-                .put("messages", new JSONArray()
-                        .put(new JSONObject()
-                                .put("role", "system")
-                                .put("content", settings.getSystemPrompt() + ". Rispondi sempre in lingua " + settings.getOutputLanguage()))
-                        .put(new JSONObject()
-                                .put("role", "user")
-                                .put("content", text))
-                );
+    private static String buildRequestJson(MLoggerAISettings settings, String text) {
+        try {
+            ObjectNode root = objectMapper.createObjectNode();
+            root.put("model", settings.getModelName());
+            root.put("temperature", settings.getTemperature());
+            root.put("max_tokens", settings.getMaxTokensField());
+
+            ArrayNode messages = objectMapper.createArrayNode();
+
+            ObjectNode systemMsg = objectMapper.createObjectNode();
+            systemMsg.put("role", "system");
+            systemMsg.put("content", settings.getSystemPrompt() + ". Rispondi sempre in lingua " + settings.getOutputLanguage());
+            messages.add(systemMsg);
+
+            ObjectNode userMsg = objectMapper.createObjectNode();
+            userMsg.put("role", "user");
+            userMsg.put("content", text);
+            messages.add(userMsg);
+
+            root.set("messages", messages);
+
+            return objectMapper.writeValueAsString(root);
+        } catch (Exception e) {
+            throw new RuntimeException("Errore nella creazione della richiesta JSON", e);
+        }
     }
 
     public static void init(Project project, JBTextArea outputArea, JCheckBox activateDebug, JCheckBox verbose) {
@@ -199,9 +231,6 @@ public class ErrorSolverService {
             for (int i = 0; i < 10 && cachedSettings == null; i++) {
                 try {
                     cachedSettings = getSettings(project);
-//                    final int attempt = i + 1;
-//                    SwingUtilities.invokeLater(() ->
-//                            outputArea.append("✅ [DEBUG] Settings PRE-CARICATE al tentativo " + attempt + "!\n\n"));
                     break;
                 } catch (IllegalStateException e) {
                     if (i < 9) {
@@ -359,17 +388,6 @@ public class ErrorSolverService {
                     });
                 }
 
-                // Classe helper per mantenere il tipo di output
-                class LogEntry {
-                    final String line;
-                    final com.intellij.openapi.util.Key type;
-
-                    LogEntry(String line, com.intellij.openapi.util.Key type) {
-                        this.line = line;
-                        this.type = type;
-                    }
-                }
-
                 final List<LogEntry> initialBuffer = new ArrayList<>();
                 final boolean[] bufferComplete = {false};
                 final int MIN_LINES_BEFORE_ANALYSIS = 150;
@@ -390,7 +408,7 @@ public class ErrorSolverService {
                     }
 
                     @Override
-                    public void onTextAvailable(@NotNull ProcessEvent event, com.intellij.openapi.util.@NotNull Key outputType) {
+                    public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
                         hasReceivedOutput[0] = true;
                         String logLine = event.getText();
 
@@ -417,7 +435,7 @@ public class ErrorSolverService {
                             });
                         }
 
-                        // FASE 1: Accumula le prime 20 righe
+                        // FASE 1: Accumula le prime 150 righe
                         if (!bufferComplete[0]) {
                             initialBuffer.add(new LogEntry(logLine, outputType));
                             allOutput.append(logLine);
@@ -435,7 +453,6 @@ public class ErrorSolverService {
                         }
 
                         // FASE 2: Dopo il buffer, processa normalmente
-
                         processLogLine(logLine, outputType, lastError, activateDebug, outputArea);
                     }
 
@@ -452,12 +469,10 @@ public class ErrorSolverService {
                             });
                         }
 
-                        boolean b = exitCode == 0 && ERROR_PATTERN.matcher(allOutput).find();
+                        boolean hasErrorInOutput = exitCode == 0 && ERROR_PATTERN.matcher(allOutput).find();
                         if (!lastError.isEmpty() || exitCode != 0) {
-
                             callRestAI(project, outputArea, activateDebug, allOutput.append(Objects.requireNonNull(event.getProcessHandler().getProcessInput())), exitCode, event);
-
-                        } else if (b) {
+                        } else if (hasErrorInOutput) {
                             callRestAI(project, outputArea, activateDebug, allOutput.append(Objects.requireNonNull(event.getProcessHandler().getProcessInput())), exitCode, event);
                         } else {
                             if (activateDebug.isSelected()) {
@@ -466,6 +481,7 @@ public class ErrorSolverService {
                             }
                             callRestAI(project, outputArea, activateDebug, allOutput.append(Objects.requireNonNull(event.getProcessHandler().getProcessInput())), exitCode, event);
                         }
+
                         // Se il buffer non è completo, svuotalo
                         if (!bufferComplete[0] && !initialBuffer.isEmpty()) {
                             if (activateDebug.isSelected()) {
@@ -509,7 +525,7 @@ public class ErrorSolverService {
         }
     }
 
-    private static void flushBuffer(List<?> buffer, boolean[] bufferComplete,
+    private static void flushBuffer(List<LogEntry> buffer, boolean[] bufferComplete,
                                     StringBuilder lastError, JCheckBox activateDebug,
                                     JBTextArea outputArea, StringBuilder allOutput) {
         bufferComplete[0] = true;
@@ -521,21 +537,14 @@ public class ErrorSolverService {
             });
         }
 
-        for (Object obj : buffer) {
-            try {
-                String line = (String) obj.getClass().getField("line").get(obj);
-                com.intellij.openapi.util.Key type = (com.intellij.openapi.util.Key) obj.getClass().getField("type").get(obj);
-
-                allOutput.append(line).append("\n");
-                processLogLine(line, type, lastError, activateDebug, outputArea);
-            } catch (Exception e) {
-                // Ignore
-            }
+        for (LogEntry entry : buffer) {
+            allOutput.append(entry.line).append("\n");
+            processLogLine(entry.line, entry.type, lastError, activateDebug, outputArea);
         }
         buffer.clear();
     }
 
-    private static void processLogLine(String logLine, com.intellij.openapi.util.Key outputType,
+    private static void processLogLine(String logLine, Key outputType,
                                        StringBuilder lastError, JCheckBox activateDebug,
                                        JBTextArea outputArea) {
         final String type;
@@ -575,11 +584,11 @@ public class ErrorSolverService {
         }
     }
 
-    private static void querySolverAsync(MLoggerAISettings settings, String
-            log, java.util.function.Consumer<String> callback) {
+    private static void querySolverAsync(MLoggerAISettings settings, String log,
+                                         java.util.function.Consumer<String> callback) {
         try {
-            JSONObject payload = buildRequest(settings, log);
-            RequestBody body = RequestBody.create(payload.toString(), MediaType.get("application/json"));
+            String jsonPayload = buildRequestJson(settings, log);
+            RequestBody body = RequestBody.create(jsonPayload, MediaType.get("application/json"));
 
             Request request = new Request.Builder()
                     .addHeader("Authorization", "Bearer " + settings.getSystemServiceKey())
@@ -601,14 +610,15 @@ public class ErrorSolverService {
                         return;
                     }
 
-                    String body = response.body().string();
+                    String bodyString = response.body().string();
                     try {
-                        JSONObject json = new JSONObject(body);
-                        JSONArray choices = json.optJSONArray("choices");
-                        if (choices != null && !choices.isEmpty()) {
-                            String content = choices.getJSONObject(0)
-                                    .getJSONObject("message")
-                                    .optString("content", "")
+                        JsonNode json = objectMapper.readTree(bodyString);
+                        JsonNode choices = json.get("choices");
+                        if (choices != null && choices.isArray() && choices.size() > 0) {
+                            String content = choices.get(0)
+                                    .get("message")
+                                    .get("content")
+                                    .asText("")
                                     .trim();
                             callback.accept(content);
                         } else {
