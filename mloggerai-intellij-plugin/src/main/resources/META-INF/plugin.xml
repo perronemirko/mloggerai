@@ -20,10 +20,10 @@
         Contact: <a href="mailto:bluethrushlinux@gmail.com">bluethrushlinux@gmail.com</a>
     </p>
     ]]></description>
-    <idea-version since-build="242" until-build="252.*"/>
+    <idea-version since-build="242.4" until-build="252.*"/>
 
     <change-notes><![CDATA[
-    <h3>0.0.3</h3>
+    <h3>0.0.1</h3>
     <ul>
         <li>Initial release</li>
         <li>Error detection from run configurations</li>
@@ -51,16 +51,4 @@
                 id="com.mloggerai.plugin.settings"
                 displayName="MLoggerAI"/>
     </extensions>
-
-    <!-- Uncomment when ready to use
-    <actions>
-        <action id="MLoggerAISuggest"
-                class="com.mloggerai.plugin.MLoggerAISuggestAction"
-                text="Suggest with AI"
-                description="Suggests code using on-premise or cloud LLM">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="alt M"/>
-        </action>
-    </actions>
-    -->
 </idea-plugin>

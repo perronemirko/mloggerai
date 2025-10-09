@@ -1,3 +1,3 @@
 #!/bin/bash
-./gradlew clean
-./gradlew buildPlugin
+./gradlew clean $@
+./gradlew buildPlugin $@
