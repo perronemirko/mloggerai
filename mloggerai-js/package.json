@@ -1,11 +1,11 @@
 {
   "name": "mloggerai",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Node.js module that analyzes errors and proposes AI driver solutions",
   "main": "mloggerai.js",
   "type": "module",
   "scripts": {
-    "test": "node test.js"
+    "test": "nodemon test.js"
   },
   "keywords": [
     "ai",
@@ -20,6 +20,8 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.0.0",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10",
     "openai": "^4.0.0",
     "winston": "^3.8.0"
   },

@@ -13,21 +13,35 @@ const __dirname = path.dirname(__filename);
 export class ErrorSolver {
   constructor({
     model = null,
+    base_url = null,
+    api_Key = null,
+    temperature = 0.3,
+    max_tokens = 150,
+    base_prompt = null,
     logFile = "logs/logger.log",
     logLevel = "debug",
     outputLanguage = "italiano",
   } = {}) {
-    const baseURL = process.env.OPENAI_API_URL || "http://localhost:1234/v1";
-    const apiKey = process.env.OPENAI_API_KEY || "";
+    this.baseURL =
+      base_url || process.env.OPENAI_API_URL || "http://localhost:1234/v1";
+    this.apiKey = api_Key || process.env.OPENAI_API_KEY || "";
     this.model = model || process.env.OPENAI_API_MODEL || "";
-    this.client = new OpenAI({ baseURL, apiKey });
+    this.client = new OpenAI({
+      baseURL: this.baseURL,
+      apiKey: this.apiKey,
+    });
     this.outputLanguage = outputLanguage;
-
+    this.temperature = temperature || 0.3;
+    this.max_tokens = max_tokens || 150;
+    this.systemPrompt =
+      base_prompt ||
+      process.env.OPENAI_API_PROMPT ||
+      "Trova il bug e proponi la soluzione in modo molto conciso fornendo anche un solo esempio di codice corretto";
     const logDir = path.dirname(logFile);
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
-
+    /** @type {import("winston").Logger & { error(msg: string): Promise<string | undefined> }} */
     this.logger = winston.createLogger({
       level: logLevel,
       format: winston.format.combine(
@@ -52,18 +66,14 @@ export class ErrorSolver {
 
   async solveFromLog(text) {
     try {
-      const systemPrompt =
-        process.env.OPENAI_API_PROMPT ||
-        "Trova il bug e proponi la soluzione in modo molto conciso.";
-
       const completion = await this.client.chat.completions.create({
         model: this.model,
-        temperature: 0.3,
-        max_tokens: 150,
+        temperature: this.temperature,
+        max_tokens: this.max_tokens,
         messages: [
           {
             role: "system",
-            content: `${systemPrompt}. Rispondi sempre in lingua ${this.outputLanguage}`,
+            content: `${this.systemPrompt}. Rispondi sempre in lingua ${this.outputLanguage}`,
           },
           { role: "user", content: text },
         ],
@@ -81,9 +91,11 @@ export class ErrorSolver {
       origError(message, ...args);
       try {
         const solution = await this.solveFromLog(message);
-        this.logger.debug(`📘 Soluzione AI: ${solution}`);
+        this.logger.debug(`🧠💡 Soluzione AI: ${solution}`);
+        return solution;
       } catch (err) {
         this.logger.debug(`Errore AI interno: ${err.message}`);
+        return undefined;
       }
     };
   }

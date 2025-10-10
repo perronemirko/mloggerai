@@ -30,6 +30,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+mloggerai-py/uv.lock
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -149,18 +150,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Environments nodejs
-mloggerai-js/.env
-mloggerai-js/.envrc
-mloggerai-js/.venv
-mloggerai-js/env/
-mloggerai-js/venv/
-mloggerai-js/ENV/
-mloggerai-js/env.bak/
-mloggerai-js/venv.bak/
-mloggerai-js/node_modules
-mloggerai-js/package-lock.json
-mloggerai-js/logs
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -287,9 +276,52 @@ mloggerai-intellij-plugin/.gradle
 mloggerai-intellij-plugin/.idea
 mloggerai-intellij-plugin/.vscode
 mloggerai-intellij-plugin/build
+mloggerai-intellij-plugin/.intellijPlatform/
 
 ### TS module
 mloggerai-ts/dist
 mloggerai-ts/logs
 mloggerai-ts/node_modules
 mloggerai-ts/package-lock.json
+
+# Environments nodejs
+mloggerai-js/.env
+mloggerai-js/.envrc
+mloggerai-js/.venv
+mloggerai-js/env/
+mloggerai-js/venv/
+mloggerai-js/ENV/
+mloggerai-js/env.bak/
+mloggerai-js/venv.bak/
+mloggerai-js/node_modules
+mloggerai-js/package-lock.json
+mloggerai-js/logs
+
+# Environments python
+mloggerai-py/.Python
+mloggerai-py/build/
+mloggerai-py/develop-eggs/
+mloggerai-py/dist/
+mloggerai-py/downloads/
+mloggerai-py/eggs/
+mloggerai-py/.eggs/
+mloggerai-py/lib/
+mloggerai-py/lib64/
+mloggerai-py/parts/
+mloggerai-py/sdist/
+mloggerai-py/var/
+mloggerai-py/wheels/
+mloggerai-py/share/python-wheels/
+mloggerai-py/*.egg-info/
+mloggerai-py/.installed.cfg
+mloggerai-py/*.egg
+mloggerai-py/MANIFEST
+mloggerai-py/uv.lock
+mloggerai-py/.env
+mloggerai-py/.envrc
+mloggerai-py/.venv
+mloggerai-py/env/
+mloggerai-py/venv/
+mloggerai-py/ENV/
+mloggerai-py/env.bak/
+mloggerai-py/venv.bak/
