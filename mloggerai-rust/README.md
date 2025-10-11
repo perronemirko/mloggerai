@@ -19,7 +19,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-mloggerai = "0.0.1"
+mloggerai = "0.0.2"
 
 toml
 [dependencies]
@@ -40,51 +40,69 @@ OPENAI_API_PROMPT=Trova il bug e proponi la soluzione in modo conciso.
 ## 1️⃣ Simple Logging 
 ```rust
 
-use error_solver::ErrorSolver;
+use mloggerai::errorsolver::{ErrorSolver, ErrorSolverConfig};
 
 fn main() {
-    let solver = ErrorSolver::new(None, "logs/logger.log", "italiano");
+    let solver = ErrorSolver::new(ErrorSolverConfig {
+        log_file: Some("logs/logger.log".to_string()),
+        output_language: Some("italiano".to_string()),
+        ..Default::default()
+    });
 
     solver.log("INFO", "Applicazione avviata");
     solver.log("ERROR", "Errore generico di test");
 }
+
 ```
 ## 3️⃣ Solve log's errors via AI
 ```rust
-use error_solver::ErrorSolver;
+use mloggerai::errorsolver::{ErrorSolver, ErrorSolverConfig};
 
 fn main() {
-    let solver = ErrorSolver::new(None, "logs/logger.log", "italiano");
+    let solver = ErrorSolver::new(ErrorSolverConfig {
+        output_language: Some("italiano".to_string()),
+        ..Default::default()
+    });
 
     match solver.solve_from_log("Errore: panic in thread principale") {
         Ok(solution) => println!("✅ Soluzione AI: {}", solution),
         Err(e) => eprintln!("❌ Errore AI: {}", e),
     }
 }
+
 ```
 ## 3️⃣ Use it a personal On-Prem model using server API like Ollama llama.cpp lm-studio OpenApi 
 ```rust
-use error_solver::ErrorSolver;
+use mloggerai::errorsolver::{ErrorSolver, ErrorSolverConfig};
 
 fn main() {
-    // Forziamo un modello specifico invece di leggere da .env
-    let solver = ErrorSolver::new(Some("<YourModel>".to_string()), "logs/custom.log", "inglese");
+    let solver = ErrorSolver::new(ErrorSolverConfig {
+        base_url: Some("http://127.0.0.1:11434/v1".to_string()),
+        model: Some("llama3".to_string()),
+        output_language: Some("inglese".to_string()),
+        log_file: Some("logs/custom.log".to_string()),
+        ..Default::default()
+    });
 
     solver.log("INFO", "Test con modello personalizzato");
 
     match solver.solve_from_log("NullPointerException at MyClass.java:42") {
-        Ok(solution) => println!("AI Suggestion: {}", solution),
-        Err(e) => eprintln!("Errore: {}", e),
+        Ok(solution) => println!("💡 AI Suggestion: {}", solution),
+        Err(e) => eprintln!("❌ Errore: {}", e),
     }
 }
+
 
 ```
 ## 4️⃣ Bigger project integration
 ```rust
-use error_solver::ErrorSolver;
+use mloggerai::errorsolver::{ErrorSolver, ErrorSolverConfig};
 
 pub fn run_app() {
-    let solver = ErrorSolver::new(None, "logs/app.log", "italiano");
+    let solver = ErrorSolver::new(ErrorSolverConfig {
+        log_file: Some("logs/app.log".to_string()),
+        ..Default::default()
+    });
 
     if let Err(e) = do_something() {
         solver.log("ERROR", &format!("Errore riscontrato: {}", e));
@@ -98,4 +116,5 @@ pub fn run_app() {
 fn do_something() -> Result<(), &'static str> {
     Err("Divisione per zero")
 }
+
 ```

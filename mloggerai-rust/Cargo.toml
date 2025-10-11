@@ -1,7 +1,15 @@
 [package]
 name = "mloggerai"
-version = "0.0.1"
-edition = "2024"
+version = "0.0.2"
+edition = "2021"
+authors = ["Mirko Perrone <bluethrushlinux@gmail.com>"]
+description = "Rust library for analyzing logs and obtaining AI solutions via OpenAI-compatible APIs. You can use either your On-prem or On-cloud provider.I am italian I don't mind if you https://buymeacoffee.com/perronemirko :D"
+license = "MIT  For personal, educational, and non-commercial use. Please  Check https://github.com/perronemirko/mloggerai/blob/main/LICENSE"
+repository = "https://github.com/perronemirko/mloggerai"
+keywords = ["logs", "AI", "OpenAI", "rust", "error", "solver"]
+categories = ["development-tools", "logging", "artificial-intelligence","debugging"]
+readme = "README.md"
+homepage = "https://github.com/perronemirko/mloggerai"
 
 [dependencies]
 reqwest = { version = "0.11", features = ["blocking", "json"] }

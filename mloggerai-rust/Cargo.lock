@@ -137,16 +137,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "error_solver_rust"
-version = "0.1.0"
-dependencies = [
- "dotenv",
- "reqwest",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -554,6 +544,16 @@ dependencies = [
  "libc",
  "wasi 0.11.1+wasi-snapshot-preview1",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "mloggerai"
+version = "0.0.2"
+dependencies = [
+ "dotenv",
+ "reqwest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

@@ -1,0 +1,32 @@
+# Build output
+/target
+**/*.rs.bk
+*.log
+
+# Environment files
+.env
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Git files (non necessari nel crate)
+.git
+.gitignore
+
+# Mac/Linux system files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# Node/npm artifacts (if any accidental)
+node_modules/
+package-lock.json
+yarn.lock
