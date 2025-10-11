@@ -18,6 +18,13 @@ import java.nio.file.Paths;
 import java.util.concurrent.*;
 import java.util.logging.*;
 
+/**
+ * ErrorSolver is a utility class that sends log messages or code snippets
+ * to an AI model for analysis and suggestions to fix bugs.
+ * <p>
+ * It supports synchronous and asynchronous calls, logging, and automatic
+ * handling of critical log messages.
+ */
 public class ErrorSolver {
 
     private final Logger logger;
@@ -31,6 +38,18 @@ public class ErrorSolver {
     private final CloseableHttpClient httpClient;
     private final ExecutorService executor;
 
+    /**
+     * Constructs a new ErrorSolver instance with customizable parameters.
+     *
+     * @param baseUrl        The AI API base URL.
+     * @param model          The AI model to use.
+     * @param apiKey         The API key for authentication.
+     * @param temperature    Temperature parameter for AI randomness.
+     * @param max_tokens     Maximum tokens to generate.
+     * @param logFile        Path to the log file.
+     * @param logLevel       Logging level for the internal logger.
+     * @param outputLanguage Language to receive AI responses in.
+     */
     public ErrorSolver(String baseUrl,
                        String model,
                        String apiKey,
@@ -62,7 +81,7 @@ public class ErrorSolver {
         this.max_tokens = (max_tokens != 0) ? max_tokens : 180;
         this.outputLanguage = (outputLanguage != null) ? outputLanguage : "English";
         this.systemPrompt = (dotenv != null)
-                ? dotenv.get("OPENAI_API_PROMPT", "Find the bug and propose a concise solution provide  one code example.")
+                ? dotenv.get("OPENAI_API_PROMPT", "Find the bug and propose a concise solution provide one code example.")
                 : "Find the bug and propose a concise solution provide one code example.";
 
         this.logger = Logger.getLogger("AppLogger");
@@ -84,10 +103,18 @@ public class ErrorSolver {
         attachAIHandler();
     }
 
+    /**
+     * Default constructor using default settings.
+     * Loads .env variables and defaults for all parameters.
+     */
     public ErrorSolver() {
         this(null, null, null, 0, 0, "logs/logger.log", Level.ALL, "English");
     }
 
+    /**
+     * Attaches a custom log handler that triggers AI solutions
+     * for SEVERE log messages.
+     */
     private void attachAIHandler() {
         logger.addHandler(new Handler() {
             @Override
@@ -111,6 +138,12 @@ public class ErrorSolver {
         });
     }
 
+    /**
+     * Builds a JSON request to send to the AI API.
+     *
+     * @param text The log message or code snippet to analyze.
+     * @return JSONObject representing the API request body.
+     */
     private JSONObject buildRequest(String text) {
         return new JSONObject()
                 .put("model", model)
@@ -123,7 +156,12 @@ public class ErrorSolver {
                 );
     }
 
-    // 🔹 Synchronous
+    /**
+     * Sends a synchronous request to the AI model and retrieves a solution.
+     *
+     * @param text The log message or code snippet to analyze.
+     * @return The AI-generated solution as a String.
+     */
     public String solveFromLog(String text) {
         if (apiKey.isEmpty()) {
             logger.warning("OPENAI_API_KEY is missing. Skipping AI call.");
@@ -156,15 +194,29 @@ public class ErrorSolver {
         }
     }
 
-    // 🔹 Asynchronous
+    /**
+     * Sends an asynchronous request to the AI model.
+     *
+     * @param text The log message or code snippet to analyze.
+     * @return A CompletableFuture containing the AI-generated solution.
+     */
     public CompletableFuture<String> solveFromLogAsync(String text) {
         return CompletableFuture.supplyAsync(() -> solveFromLog(text), executor);
     }
 
+    /**
+     * Returns the internal logger instance.
+     *
+     * @return Logger instance used by ErrorSolver.
+     */
     public Logger getLogger() {
         return logger;
     }
 
+    /**
+     * Shuts down the internal HTTP client and executor service.
+     * Should be called when the ErrorSolver is no longer needed.
+     */
     public void shutdown() {
         try {
             httpClient.close();

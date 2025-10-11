@@ -4,8 +4,20 @@ plugins {
     id 'maven-publish'
 }
 
+group = 'com.mloggerai'
+version = '0.0.1'
+description = 'AI-assisted on-prem or on-cloud logging and bug solving library for Java applications'
+
 ext {
     author = 'Mirko Perrone'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17) // o 21 se usi Java 21
+    }
+    withJavadocJar()  // genera il file -javadoc.jar
+    withSourcesJar()  // genera il file -sources.jar
 }
 
 repositories {
@@ -16,21 +28,72 @@ dependencies {
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
     implementation 'org.json:json:20250517'
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.5.1'
-//    implementation 'org.slf4j:slf4j-jdk14:2.0.17'
     implementation 'ch.qos.logback:logback-classic:1.5.19'
+
+    // (Facoltativo) test libraries
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
 }
 
 application {
+    // Se hai un'app eseguibile
     mainClass.set('com.mloggerai.Main')
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 publishing {
     publications {
         create("mavenJava", MavenPublication) {
             from components.java
-            groupId = 'com.mloggerai'
+            groupId = project.group
             artifactId = 'mloggerai'
-            version = '0.0.0'
+            version = project.version
+
+            pom {
+                name.set("MLoggerAI")
+                description.set("AI-assisted error solver and logger integration library for Java applications.")
+                url.set("https://github.com/perronemirko/mloggerai")
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("mirko")
+                        name.set(author)
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:https://github.com/perronemirko/mloggerai.git")
+                    developerConnection.set("scm:git:ssh://github.com:perronemirko/mloggerai.git")
+                    url.set("https://github.com/perronemirko/mloggerai")
+                }
+            }
         }
+    }
+
+    repositories {
+        // Pubblicazione locale (es. ~/.m2/repository)
+        mavenLocal()
+
+        // 🔹 Se vuoi pubblicare su GitHub Packages o Maven Central,
+        // puoi decommentare e personalizzare questa sezione:
+        /*
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/mirkoperrone/mloggerai")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME_GITHUB")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN_GITHUB")
+            }
+        }
+        */
     }
 }

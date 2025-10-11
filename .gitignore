@@ -225,7 +225,9 @@ mloggerai-java/**/*.class
 mloggerai-java/**/*.jar
 mloggerai-java/**/*.zip
 mloggerai-java/**/*.tar
-
+mloggerai-java/gradle/wrapper/gradle-wrapper.properties
+mloggerai-java/gradlew
+mloggerai-java/gradlew.bat
 # Logs
 mloggerai-java/logs/
 mloggerai-java/**/*.log
