@@ -1,4 +1,4 @@
-#include "ErrorSolver.hpp"
+#include "ErrorSolverBuilder.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -8,22 +8,17 @@
 
 namespace fs = std::filesystem;
 
-ErrorSolver::ErrorSolver(const std::string& model,
-                         const std::string& log_file,
-                         const std::string& output_language,
-                         double temperature,
-                         int max_tokens,
-                         const std::string& system_prompt,
-                         size_t max_bytes,
-                         int backup_count,
-                         bool verify_ssl)
-    : log_file_(log_file),
-      output_language_(output_language),
-      temperature_(temperature),
-      max_tokens_(max_tokens),
-      max_bytes_(max_bytes),
-      backup_count_(backup_count),
-      verify_ssl_(verify_ssl)
+// Costruttore di default
+ErrorSolverBuilder::ErrorSolverBuilder()
+    : model_("gpt-4"),
+      log_file_("logs/errorsolverBuilder.log"),
+      output_language_("Italiano"),
+      temperature_(0.5),
+      max_tokens_(200),
+      system_prompt_("Trova il bug e proponi la soluzione in modo conciso."),
+      max_bytes_(2*1024*1024),
+      backup_count_(3),
+      verify_ssl_(true)
 {
     const char* env_url   = std::getenv("OPENAI_API_URL");
     const char* env_key   = std::getenv("OPENAI_API_KEY");
@@ -32,17 +27,25 @@ ErrorSolver::ErrorSolver(const std::string& model,
 
     base_url_ = env_url ? env_url : "http://localhost:1234/v1";
     api_key_ = env_key ? env_key : "inserisci_api_key";
+    if (env_model) model_ = env_model;
+    if (env_prompt) system_prompt_ = env_prompt;
 
-    model_ = !model.empty() ? model : (env_model ? env_model : "gpt-4");
-    system_prompt_ = !system_prompt.empty() ? system_prompt :
-                     (env_prompt ? env_prompt : 
-                     "Trova il bug e proponi la soluzione in modo conciso.");
-
-    // Assicurati che la directory del log esista
     fs::create_directories(fs::path(log_file_).parent_path());
 }
 
-void ErrorSolver::log(const std::string& level, const std::string& message) {
+// ===== Builder methods =====
+ErrorSolverBuilder& ErrorSolverBuilder::setModel(const std::string& model) { model_ = model; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setLogFile(const std::string& log_file) { log_file_ = log_file; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setOutputLanguage(const std::string& lang) { output_language_ = lang; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setTemperature(double temp) { temperature_ = temp; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setMaxTokens(int tokens) { max_tokens_ = tokens; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setSystemPrompt(const std::string& prompt) { system_prompt_ = prompt; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setMaxBytes(size_t max_bytes) { max_bytes_ = max_bytes; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setBackupCount(int count) { backup_count_ = count; return *this; }
+ErrorSolverBuilder& ErrorSolverBuilder::setVerifySSL(bool verify) { verify_ssl_ = verify; return *this; }
+
+// ===== Logging =====
+void ErrorSolverBuilder::log(const std::string& level, const std::string& message) {
     std::string timestamp = current_time();
     std::string log_msg = timestamp + " - " + level + " - " + message;
 
@@ -62,14 +65,15 @@ void ErrorSolver::log(const std::string& level, const std::string& message) {
     }
 }
 
-std::string ErrorSolver::current_time() {
+std::string ErrorSolverBuilder::current_time() {
     std::time_t t = std::time(nullptr);
     char buf[64];
     std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
     return buf;
 }
 
-std::string ErrorSolver::solve_from_log(const std::string& text) {
+// ===== AI solver =====
+std::string ErrorSolverBuilder::solve_from_log(const std::string& text) {
     try {
         nlohmann::json messages = {
             { {"role", "system"}, {"content", system_prompt_} },
@@ -102,7 +106,8 @@ std::string ErrorSolver::solve_from_log(const std::string& text) {
     }
 }
 
-void ErrorSolver::rotate_logs() {
+// ===== Rotate logs =====
+void ErrorSolverBuilder::rotate_logs() {
     if (!fs::exists(log_file_)) return;
     size_t file_size = fs::file_size(log_file_);
     if (file_size < max_bytes_) return;
