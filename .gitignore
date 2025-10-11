@@ -326,3 +326,8 @@ mloggerai-py/venv/
 mloggerai-py/ENV/
 mloggerai-py/env.bak/
 mloggerai-py/venv.bak/
+## vscode plugin
+mloggerai-vscode-plugin/node_modules
+mloggerai-vscode-plugin/.env
+mloggerai-vscode-plugin/package-lock.json
+mloggerai-vscode-plugin/vscode-error-solver-0.0.1.vsix

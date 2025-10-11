@@ -9,5 +9,8 @@ logger = (
 ).logger
 
 logger.info("Applicazione avviata")
-logger.error("Errore: panic in thread principale")
-
+for val in [0, "a", None]:
+    try:
+        result = 10 / val
+    except Exception as e:
+        logger.error(f"Error with value: {val}", exc_info=e)
