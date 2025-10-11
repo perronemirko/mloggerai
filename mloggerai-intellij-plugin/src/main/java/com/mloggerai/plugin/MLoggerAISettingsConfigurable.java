@@ -108,7 +108,7 @@ public class MLoggerAISettingsConfigurable implements Configurable {
         reset();
 
         // Forza il check dopo che tutto è inizializzato
-        SwingUtilities.invokeLater(() -> checkServiceKeyAndSwitchInput());
+        SwingUtilities.invokeLater(this::checkServiceKeyAndSwitchInput);
 
         return mainPanel;
     }
