@@ -16,6 +16,8 @@ dependencies {
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
     implementation 'org.json:json:20250517'
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.5.1'
+//    implementation 'org.slf4j:slf4j-jdk14:2.0.17'
+    implementation 'ch.qos.logback:logback-classic:1.5.19'
 }
 
 application {
