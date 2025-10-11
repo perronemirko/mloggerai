@@ -11,67 +11,73 @@ from openai.types.chat import ChatCompletionMessageParam
 
 class ErrorSolver:
     def __init__(
-            self,
-            model=None,
-            base_url=None,
-            api_key=None,
-            log_file="logs/logger.log",
-            log_level=logging.DEBUG,
-            output_language="italiano",
-            temperature=0.3
+        self,
+        base_url: str | None = None,
+        api_key: str | None = None,
+        model: str | None = None,
+        system_prompt: str | None = None,
+        temperature: float = 0.3,
+        max_tokens: int = 180,
+        output_language: str = "italiano",
+        log_file: str = "logs/logger.log",
+        log_level: int = logging.DEBUG,
     ):
-
-        load_dotenv()  # Carica le variabili da .env
-        self.base_url: str = os.getenv("OPENAI_API_URL", "http://localhost:1234/v1")
-        self.api_key: str = os.getenv("OPENAI_API_KEY", "")
-        self.model: str = os.getenv("OPENAI_API_MODEL", None)
-        self.model: str = os.getenv("OPENAI_API_MODEL", None)
+        # Carica variabili da .env
+        load_dotenv()
+        self.base_url: str = base_url or os.getenv("OPENAI_API_URL", "http://localhost:1234/v1")
+        self.api_key: str = api_key or os.getenv("OPENAI_API_KEY", "")
+        self.model: str = model or os.getenv("OPENAI_API_MODEL", "")
+        self.system_prompt: str = system_prompt or os.getenv(
+            "OPENAI_API_PROMPT",
+            "Trova il bug e proponi la soluzione in modo molto conciso fornendo un solo esempio corretto.",
+        )
         self.temperature = temperature
-        if model is not None:
-            self.model = model
-        if base_url is not None:
-            self.base_url = base_url
-        if api_key is not None:
-            self.api_key = api_key
+        self.max_tokens = max_tokens
+        self.output_language = output_language
 
+        # Configura client OpenAI
         self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
 
-        # Logger principale
+        # Configura logger
         self.logger = logging.getLogger("AppLogger")
         self.logger.setLevel(log_level)
-        self.output_language = output_language
         if not self.logger.hasHandlers():
-            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            self._setup_handlers(log_file)
 
-            # Console handler
-            ch = logging.StreamHandler()
-            ch.setFormatter(formatter)
-            self.logger.addHandler(ch)
-
-            # File handler
-            Path(log_file).parent.mkdir(parents=True, exist_ok=True)
-            fh = RotatingFileHandler(log_file, maxBytes=5_000_000, backupCount=3)
-            fh.setFormatter(formatter)
-            self.logger.addHandler(fh)
-
-        # Aggancia handler AI
+        # Attacca AI handler per i messaggi di errore
         self._attach_ai_handler(ai_level=logging.ERROR)
 
-    def solve_from_log(self, text):
+    def _setup_handlers(self, log_file: str):
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+        # Console
+        ch = logging.StreamHandler()
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+
+        # File (rotating)
+        Path(log_file).parent.mkdir(parents=True, exist_ok=True)
+        fh = RotatingFileHandler(log_file, maxBytes=5_000_000, backupCount=3)
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+
+    def error(self, text: str) -> str:
         try:
-            system_prompt: str = os.getenv(
-                "OPENAI_API_PROMPT",
-                f"Trova il bug e proponi la soluzione in modo molto conciso.",
-            )
             messages = cast(
                 list[ChatCompletionMessageParam],
                 [
-                    {"role": "system", "content": f"{system_prompt}\nRispondi sempre in lingua {self.output_language} presentendo un solo esempio di codice non errato"},
+                    {
+                        "role": "system",
+                        "content": f"{self.system_prompt}\nRispondi sempre in lingua {self.output_language} con un solo esempio di codice corretto",
+                    },
                     {"role": "user", "content": text},
                 ],
             )
             completion = self.client.chat.completions.create(
-                model=self.model, temperature=self.temperature, max_tokens=180, messages=messages
+                model=self.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                messages=messages,
             )
             return completion.choices[0].message.content.strip()
         except Exception as e:
@@ -81,13 +87,14 @@ class ErrorSolver:
         solver = self
 
         class AIHandler(logging.Handler):
-            def emit(self, record):
+            def emit(self, record: logging.LogRecord):
+                # Evita ricorsione
                 if getattr(record, "_from_ai_solver", False):
                     return
                 try:
                     msg = self.format(record)
-                    solution = solver.solve_from_log(msg)
-                    combined = f"📘 Soluzione AI: {solution}"
+                    solution = solver.error(msg)
+                    combined = f"🧠💡 Soluzione AI: {solution}"
                     solver.logger.debug(combined, extra={"_from_ai_solver": True})
                 except Exception as e:
                     solver.logger.debug(
@@ -96,7 +103,5 @@ class ErrorSolver:
 
         handler = AIHandler()
         handler.setLevel(ai_level)
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        )
+        handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
         self.logger.addHandler(handler)
