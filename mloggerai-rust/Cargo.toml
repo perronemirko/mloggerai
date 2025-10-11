@@ -6,8 +6,8 @@ authors = ["Mirko Perrone <bluethrushlinux@gmail.com>"]
 description = "Rust library for analyzing logs and obtaining AI solutions via OpenAI-compatible APIs. You can use either your On-prem or On-cloud provider.I am italian I don't mind if you https://buymeacoffee.com/perronemirko :D"
 license-file = "LICENSE.txt"
 repository = "https://github.com/perronemirko/mloggerai"
-keywords = ["logs", "AI", "OpenAI", "rust", "error", "solver"]
-categories = ["development-tools", "logging", "artificial-intelligence","debugging"]
+keywords = ["logs", "AI", "OpenAI", "llm", "error"]
+categories = ["development-tools", "algorithms", "development-tools::debugging"]
 readme = "README.md"
 homepage = "https://github.com/perronemirko/mloggerai"
 
