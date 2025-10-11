@@ -256,6 +256,7 @@ mloggerai-c++/ENV/
 mloggerai-c++/env.bak/
 mloggerai-c++/build.bak/
 mloggerai-c++/logs
+mloggerai-c++/install
 #Environments RUST
 mloggerai-rust/logs
 mloggerai-rust/target
