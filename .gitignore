@@ -242,8 +242,8 @@ mloggerai-java/build/tmp/
 
 # IDE files
 mloggerai-java/*.iml
-mloggerai-java/.idea/
-mloggerai-java/.vscode/
+mloggerai-java/.idea
+mloggerai-java/.vscode
 mloggerai-java/.env
 
 # Environments c++
@@ -257,6 +257,9 @@ mloggerai-c++/env.bak/
 mloggerai-c++/build.bak/
 mloggerai-c++/logs
 mloggerai-c++/install
+mloggerai-c++/.vscode
+
+
 #Environments RUST
 mloggerai-rust/logs
 mloggerai-rust/target
@@ -266,6 +269,7 @@ mloggerai-rust/mloggerai_external_lib/Cargo.lock
 mloggerai-rust/mloggerai_external_lib/.env
 mloggerai-rust/mloggerai_external_lib/target
 mloggerai-rust/mloggerai_external_lib/logs
+mloggerai-rust/.vscode
 ## Intellij plugin
 
 mloggerai-intellij-plugin/build/
@@ -284,6 +288,7 @@ mloggerai-ts/dist
 mloggerai-ts/logs
 mloggerai-ts/node_modules
 mloggerai-ts/package-lock.json
+mloggerai-ts/.vscode
 
 # Environments nodejs
 mloggerai-js/.env
@@ -297,6 +302,7 @@ mloggerai-js/venv.bak/
 mloggerai-js/node_modules
 mloggerai-js/package-lock.json
 mloggerai-js/logs
+mloggerai-js/.vscode
 
 # Environments python
 mloggerai-py/.Python
@@ -326,8 +332,11 @@ mloggerai-py/venv/
 mloggerai-py/ENV/
 mloggerai-py/env.bak/
 mloggerai-py/venv.bak/
+mloggerai-py/.vscode
+
 ## vscode plugin
 mloggerai-vscode-plugin/node_modules
 mloggerai-vscode-plugin/.env
 mloggerai-vscode-plugin/package-lock.json
 mloggerai-vscode-plugin/vscode-error-solver-0.0.1.vsix
+mloggerai-vscode-plugin/.vscode
