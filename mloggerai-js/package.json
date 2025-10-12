@@ -1,7 +1,7 @@
 {
   "name": "mloggerai",
-  "version": "0.0.3",
-  "description": "Node.js module that analyzes errors and proposes AI driver solutions",
+  "version": "0.0.4",
+  "description": "Node.js module that analyzes errors and proposes On-prem or On-cloud AI driven solutions",
   "main": "mloggerai.js",
   "type": "module",
   "scripts": {
@@ -20,8 +20,6 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.0.0",
-    "express": "^5.1.0",
-    "nodemon": "^3.1.10",
     "openai": "^4.0.0",
     "winston": "^3.8.0"
   },
@@ -32,5 +30,9 @@
   "bugs": {
     "url": "https://github.com/perronemirko/mloggerai/issues"
   },
-  "homepage": "https://github.com/perronemirko/mloggerai#readme"
+  "homepage": "https://github.com/perronemirko/mloggerai#readme",
+  "devDependencies": {
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  }
 }
