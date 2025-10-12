@@ -2,7 +2,7 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
-    id("org.jetbrains.intellij.platform") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.9.0"
 }
 
 group = "com.mloggerai.plugin"
@@ -20,21 +20,24 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("org.json:json:20250517")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
-
-    intellijPlatform {
-        pycharmCommunity("2024.2.4")
-        bundledPlugins(emptyList())
-        instrumentationTools()
-        testFramework(TestFrameworkType.Starter)
-    }
-
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
+    implementation("org.json:json:20250517")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testImplementation("org.kodein.di:kodein-di-jvm:7.20.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1")
     sourceSets {
         create("integrationTest") {
             compileClasspath += sourceSets.main.get().output
             runtimeClasspath += sourceSets.main.get().output
         }
     }
-
+    intellijPlatform {
+        pycharmCommunity("2024.2.4")
+        bundledPlugins(emptyList())
+        instrumentationTools()
+        testFramework(TestFrameworkType.Starter)
+    }
     val integrationTestImplementation by configurations.getting {
         extendsFrom(configurations.testImplementation.get())
     }
