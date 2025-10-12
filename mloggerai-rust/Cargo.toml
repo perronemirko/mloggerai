@@ -1,6 +1,6 @@
 [package]
 name = "mloggerai"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 authors = ["Mirko Perrone <bluethrushlinux@gmail.com>"]
 description = "Rust library for analyzing logs and obtaining AI solutions via OpenAI-compatible APIs. You can use either your On-prem or On-cloud provider.I am italian I don't mind if you https://buymeacoffee.com/perronemirko :D"

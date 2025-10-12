@@ -79,7 +79,7 @@ impl ErrorSolver {
             .or_else(|| env::var("OPENAI_API_PROMPT").ok())
             .unwrap_or_else(|| {
                 format!(
-                    "Trova il bug e proponi la soluzione in modo molto conciso. Rispondi sempre in lingua {}",
+                    "Trova il bug e proponi la soluzione in modo molto conciso fornendo un risultato in rust. Rispondi sempre in lingua {}",
                     output_language
                 )
             });
@@ -113,6 +113,22 @@ impl ErrorSolver {
         writeln!(file, "{} - {}", level, message).unwrap();
     }
 
+    pub fn info(&self, message: &str) {
+        self.log("INFO", message);
+    }
+    pub fn debug(&self, message: &str) {
+        self.log("DEBUG", message);
+    }
+    pub fn wanrn(&self, message: &str) {
+        self.log("WARN", message);
+    }
+    pub fn fatal(&self, message: &str) {
+        self.log("FATAL", message);
+    }
+    pub fn error(&self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
+        return self.solve_from_log(text);
+    }
+    //  DEBUG, INFO, WARN, ERROR, and FATAL
     /// Solve an error message or log by sending it to the AI model
     pub fn solve_from_log(&self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
         let body = json!({
