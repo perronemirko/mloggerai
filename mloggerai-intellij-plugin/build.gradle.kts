@@ -20,41 +20,26 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("org.json:json:20250517")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
-    implementation("com.squareup.okhttp3:okhttp:5.1.0")
-    implementation("org.json:json:20250517")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
+
+    implementation("org.bouncycastle:bctls-jdk14:1.82")
+    implementation("org.brotli:dec:0.1.2")
+    implementation("org.conscrypt:conscrypt-openjdk-uber:2.5.2")
+    implementation("org.graalvm.sdk:graal-sdk:25.0.0")
+// https://mvnrepository.com/artifact/org.openjsse/openjsse
+    implementation("org.openjsse:openjsse:1.1.14")
+    // https://mvnrepository.com/artifact/org.slf4j.impl/log4j12
+    implementation("ch.qos.logback:logback-classic:1.5.19")
+
+
+
+
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("org.kodein.di:kodein-di-jvm:7.20.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1")
-    sourceSets {
-        create("integrationTest") {
-            compileClasspath += sourceSets.main.get().output
-            runtimeClasspath += sourceSets.main.get().output
-        }
-    }
     intellijPlatform {
         pycharmCommunity("2024.2.4")
         bundledPlugins(emptyList())
-        instrumentationTools()
         testFramework(TestFrameworkType.Starter)
-    }
-    val integrationTestImplementation by configurations.getting {
-        extendsFrom(configurations.testImplementation.get())
-    }
-
-    dependencies {
-        integrationTestImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-        integrationTestImplementation("org.kodein.di:kodein-di-jvm:7.20.2")
-        integrationTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1")
-    }
-
-    val integrationTest = task<Test>("integrationTest") {
-        val integrationTestSourceSet = sourceSets.getByName("integrationTest")
-        testClassesDirs = integrationTestSourceSet.output.classesDirs
-        classpath = integrationTestSourceSet.runtimeClasspath
-        systemProperty("path.to.build.plugin", tasks.prepareSandbox.get().pluginDirectory.get().asFile)
-        useJUnitPlatform()
-        dependsOn(tasks.prepareSandbox)
     }
 }
 java {
