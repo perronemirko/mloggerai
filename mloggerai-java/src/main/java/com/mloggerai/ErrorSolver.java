@@ -81,8 +81,8 @@ public class ErrorSolver {
         this.max_tokens = (max_tokens != 0) ? max_tokens : 180;
         this.outputLanguage = (outputLanguage != null) ? outputLanguage : "English";
         this.systemPrompt = (dotenv != null)
-                ? dotenv.get("OPENAI_API_PROMPT", "Find the bug and propose a concise solution provide one code example.")
-                : "Find the bug and propose a concise solution provide one code example.";
+                ? dotenv.get("OPENAI_API_PROMPT", "Find the bug and propose a concise solution provide one java code example.")
+                : "Find the bug and propose a concise solution provide one java code example.";
 
         this.logger = Logger.getLogger("AppLogger");
         this.logger.setLevel(logLevel);
@@ -131,10 +131,12 @@ public class ErrorSolver {
             }
 
             @Override
-            public void flush() {}
+            public void flush() {
+            }
 
             @Override
-            public void close() throws SecurityException {}
+            public void close() throws SecurityException {
+            }
         });
     }
 
@@ -182,7 +184,7 @@ public class ErrorSolver {
 
                 String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                 JSONObject jsonResponse = new JSONObject(body);
-                return "🧠  " +jsonResponse.getJSONArray("choices")
+                return "🧠  " + jsonResponse.getJSONArray("choices")
                         .getJSONObject(0)
                         .getJSONObject("message")
                         .getString("content")
@@ -192,6 +194,17 @@ public class ErrorSolver {
             logger.warning("\uD83E\uDDE0 AI request error: " + e.getMessage());
             return "\uD83E\uDDE0 AI Error: " + e.getMessage();
         }
+    }
+
+    /**
+     * Facade method to solveFromLog
+     * Sends a synchronous request to the AI model and retrieves a solution
+     *
+     * @param text The log message or code snippet to analyze.
+     * @return The AI-generated solution as a String.
+     */
+    public String error(String text) {
+        return this.solveFromLog(text);
     }
 
     /**
@@ -220,7 +233,8 @@ public class ErrorSolver {
     public void shutdown() {
         try {
             httpClient.close();
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
         executor.shutdown();
     }
 }

@@ -18,18 +18,18 @@ public class Main {
      */
     public static void main(String[] args) {
         // Initialize ErrorSolver
-        ErrorSolver solver = new ErrorSolver();
+        ErrorSolver logger = new ErrorSolver();
 
         // Example message to analyze
         String errorMessage = "NullPointerException at line 42 in UserService.java";
 
         System.out.println("➡️ Sending error to AI solver...");
-        String solution = solver.solveFromLog(errorMessage);
+        String solution = logger.error(errorMessage);
 
         System.out.println("✅ AI Response:");
         System.out.println(solution);
 
         // Close resources
-        solver.shutdown();
+        logger.shutdown();
     }
 }
