@@ -5,6 +5,7 @@
   "description": "Intercetta console.log e errori di rete inviandoli a un backend",
   "permissions": ["storage", "scripting", "activeTab"],
   "host_permissions": [
+    "https://cdn.jsdelivr.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*",
     "<all_urls>"
@@ -16,7 +17,6 @@
     "page": "options.html",
     "open_in_tab": true
   },
-
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -35,6 +35,12 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["scripts/*.js","scripts/es/*.js","scripts/languages/*.js","scripts/es/languages/*.js", "scrips/styles/*.css","scrips/styles/base16/*.css","styles/*.css", "icon16.png", "icon48.png", "icon128.png"],
+      "matches": ["<all_urls>"]
     }
   ],
   "content_security_policy": {

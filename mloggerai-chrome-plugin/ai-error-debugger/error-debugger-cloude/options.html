@@ -1,191 +1,201 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <title>AI Debugger - Impostazioni</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 0;
-      margin: 0;
-      background: #f5f5f5;
-    }
-    
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-    
-    h2 {
-      color: #333;
-      margin-bottom: 30px;
-      font-size: 28px;
-    }
-    
-    .settings-card {
-      background: white;
-      border-radius: 8px;
-      padding: 30px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-    }
-    
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #444;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #4CAF50;
-    }
-    
-    label {
-      display: block;
-      margin-top: 16px;
-      font-weight: 600;
-      color: #555;
-      font-size: 14px;
-    }
-    
-    input, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      margin-top: 6px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      box-sizing: border-box;
-      font-family: inherit;
-    }
-    
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #4CAF50;
-      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-    }
-    
-    input[type="number"] {
-      max-width: 200px;
-    }
-    
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    
-    .input-hint {
-      font-size: 12px;
-      color: #888;
-      margin-top: 4px;
-      font-weight: normal;
-    }
-    
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 30px;
-    }
-    
-    button {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    #saveBtn {
-      background: #4CAF50;
-      color: white;
-      flex: 1;
-    }
-    
-    #saveBtn:hover {
-      background: #45a049;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
-    }
-    
-    #testBtn {
-      background: #2196F3;
-      color: white;
-      flex: 1;
-    }
-    
-    #testBtn:hover {
-      background: #0b7dda;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
-    }
-    
-    #status {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 4px;
-      text-align: center;
-      font-weight: 500;
-      display: none;
-    }
-    
-    #status.success {
-      background: #d4edda;
-      color: #155724;
-      display: block;
-    }
-    
-    #status.error {
-      background: #f8d7da;
-      color: #721c24;
-      display: block;
-    }
-    
-    #status.info {
-      background: #d1ecf1;
-      color: #0c5460;
-      display: block;
-    }
-    
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    
-    @media (max-width: 600px) {
-      .grid-2 {
-        grid-template-columns: 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI Debugger - Impostazioni</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 0;
+        margin: 0;
+        background: #f5f5f5;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>⚙️ Impostazioni AI Debugger</h2>
 
-    <!-- Sezione Backend/Monitoring -->
-    <div class="settings-card">
-      <div class="section-title">🔗 Backend & Monitoring</div>
-      
-      <label>
-        URL Backend per errori
-        <input id="backendUrl" type="text" placeholder="http://localhost:3000/errors">
-        <div class="input-hint">Endpoint dove inviare gli errori intercettati</div>
-      </label>
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
 
-      <label style="margin-top: 20px;">
-        <input id="enabledToggle" type="checkbox"> Abilita monitoring errori
-        <div class="input-hint">Attiva/disattiva l'intercettazione automatica degli errori</div>
-      </label>
-    </div>
+      h2 {
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 28px;
+      }
 
-    <!-- Sezione AI Model -->
-    <div class="settings-card">
-      <div class="section-title">🤖 Configurazione AI Model</div>
-      
-      <label>
+      .settings-card {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #4caf50;
+      }
+
+      label {
+        display: block;
+        margin-top: 16px;
+        font-weight: 600;
+        color: #555;
+        font-size: 14px;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 6px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+        font-family: inherit;
+      }
+
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #4caf50;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+      }
+
+      input[type="number"] {
+        max-width: 200px;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .input-hint {
+        font-size: 12px;
+        color: #888;
+        margin-top: 4px;
+        font-weight: normal;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      #saveBtn {
+        background: #4caf50;
+        color: white;
+        flex: 1;
+      }
+
+      #saveBtn:hover {
+        background: #45a049;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+      }
+
+      #testBtn {
+        background: #2196f3;
+        color: white;
+        flex: 1;
+      }
+
+      #testBtn:hover {
+        background: #0b7dda;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+      }
+
+      #status {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: 500;
+        display: none;
+      }
+
+      #status.success {
+        background: #d4edda;
+        color: #155724;
+        display: block;
+      }
+
+      #status.error {
+        background: #f8d7da;
+        color: #721c24;
+        display: block;
+      }
+
+      #status.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        display: block;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 600px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>⚙️ Impostazioni AI Debugger</h2>
+
+      <!-- Sezione Backend/Monitoring -->
+      <div class="settings-card">
+        <div class="section-title">🔗 Backend & Monitoring</div>
+
+        <label>
+          URL Backend per errori
+          <input
+            id="backendUrl"
+            type="text"
+            placeholder="http://localhost:3000/errors"
+          />
+          <div class="input-hint">
+            Endpoint dove inviare gli errori intercettati
+          </div>
+        </label>
+
+        <label style="margin-top: 20px">
+          <input id="enabledToggle" type="checkbox" /> Abilita monitoring errori
+          <div class="input-hint">
+            Attiva/disattiva l'intercettazione automatica degli errori
+          </div>
+        </label>
+      </div>
+
+      <!-- Sezione AI Model -->
+      <div class="settings-card">
+        <div class="section-title">🤖 Configurazione AI Model</div>
+
+        <!-- <label>
         Model
         <input id="model" placeholder="lmstudio-community/llama-3.2-3b-instruct">
         <div class="input-hint">Nome del modello AI da utilizzare</div>
@@ -195,55 +205,79 @@
         Base URL
         <input id="base_url" placeholder="http://localhost:1234/v1">
         <div class="input-hint">URL base dell'API AI (LM Studio, OpenAI, ecc.)</div>
-      </label>
+      </label> -->
 
-      <label>
-        API Key
-        <input id="api_Key" type="password" placeholder="sk-...">
-        <div class="input-hint">Chiave API per autenticazione</div>
-      </label>
-
-      <div class="grid-2">
         <label>
-          Temperature (0.0 - 1.0)
-          <input id="temperature" type="number" step="0.1" min="0" max="1">
-          <div class="input-hint">Creatività delle risposte</div>
+          Base URL
+          <input id="base_url" placeholder="http://localhost:1234/v1" />
+          <div class="input-hint">
+            URL base dell'API AI (LM Studio, OpenAI, ecc.)
+          </div>
         </label>
 
         <label>
-          Max Tokens
-          <input id="max_tokens" type="number" placeholder="150">
-          <div class="input-hint">Lunghezza massima risposta</div>
+          Model
+          <select id="model">
+            <option value="">-- Seleziona un modello --</option>
+          </select>
+          <div class="input-hint">Nome del modello AI da utilizzare</div>
+        </label>
+
+        <button id="loadModels">Carica modelli</button>
+
+        <label>
+          API Key
+          <input id="api_Key" type="password" placeholder="sk-..." />
+          <div class="input-hint">Chiave API per autenticazione</div>
+        </label>
+
+        <div class="grid-2">
+          <label>
+            Temperature (0.0 - 1.0)
+            <input id="temperature" type="number" step="0.1" min="0" max="1" />
+            <div class="input-hint">Creatività delle risposte</div>
+          </label>
+
+          <label>
+            Max Tokens
+            <input id="max_tokens" type="number" placeholder="150" />
+            <div class="input-hint">Lunghezza massima risposta</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sezione Prompt -->
+      <div class="settings-card">
+        <div class="section-title">💬 Configurazione Prompt</div>
+
+        <label>
+          Base Prompt
+          <textarea
+            id="base_prompt"
+            rows="4"
+            placeholder="Trova il bug e proponi la soluzione"
+          ></textarea>
+          <div class="input-hint">
+            Istruzioni base per l'analisi degli errori
+          </div>
+        </label>
+
+        <label>
+          Output Language
+          <input id="outputLanguage" placeholder="italiano" />
+          <div class="input-hint">Lingua per le risposte dell'AI</div>
         </label>
       </div>
+
+      <!-- Pulsanti -->
+      <div class="button-group">
+        <button id="saveBtn">💾 Salva Impostazioni</button>
+        <button id="testBtn">🧪 Test Connessione</button>
+      </div>
+
+      <div id="status"></div>
     </div>
 
-    <!-- Sezione Prompt -->
-    <div class="settings-card">
-      <div class="section-title">💬 Configurazione Prompt</div>
-      
-      <label>
-        Base Prompt
-        <textarea id="base_prompt" rows="4" placeholder="Trova il bug e proponi la soluzione"></textarea>
-        <div class="input-hint">Istruzioni base per l'analisi degli errori</div>
-      </label>
-
-      <label>
-        Output Language
-        <input id="outputLanguage" placeholder="italiano">
-        <div class="input-hint">Lingua per le risposte dell'AI</div>
-      </label>
-    </div>
-
-    <!-- Pulsanti -->
-    <div class="button-group">
-      <button id="saveBtn">💾 Salva Impostazioni</button>
-      <button id="testBtn">🧪 Test Connessione</button>
-    </div>
-
-    <div id="status"></div>
-  </div>
-
-  <script src="options.js"></script>
-</body>
+    <script src="options.js"></script>
+  </body>
 </html>

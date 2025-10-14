@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Selettori Backend/Monitoring
   const backendUrl = document.getElementById("backendUrl");
   const enabledToggle = document.getElementById("enabledToggle");
-  
+
   // Selettori AI
   const model = document.getElementById("model");
   const base_url = document.getElementById("base_url");
@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const max_tokens = document.getElementById("max_tokens");
   const base_prompt = document.getElementById("base_prompt");
   const outputLanguage = document.getElementById("outputLanguage");
-  
+
   // Pulsanti
   const saveBtn = document.getElementById("saveBtn");
   const testBtn = document.getElementById("testBtn");
@@ -21,25 +21,76 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Alcuni elementi del DOM non sono presenti!");
     return;
   }
+  document.getElementById("loadModels").addEventListener("click", async () => {
+    const baseUrl = document.getElementById("base_url").value.trim();
+    const modelSelect = document.getElementById("model");
 
+    // Pulisce il dropdown
+    modelSelect.innerHTML = '<option value="">-- Caricamento... --</option>';
+
+    if (!baseUrl) {
+      alert("Inserisci un Base URL valido.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${baseUrl}/models`);
+      if (!response.ok) throw new Error(`Errore API: ${response.status}`);
+
+      const data = await response.json();
+
+      // Alcune API usano data.models, altre data.data
+      const models = data.models || data.data || [];
+
+      modelSelect.innerHTML = ""; // svuota
+      if (models.length === 0) {
+        modelSelect.innerHTML =
+          '<option value="">Nessun modello trovato</option>';
+        return;
+      }
+
+      models.forEach((m) => {
+        const modelId = m.id || m.name || m.model || JSON.stringify(m);
+        const opt = document.createElement("option");
+        opt.value = modelId;
+        opt.textContent = modelId;
+        modelSelect.appendChild(opt);
+      });
+    } catch (err) {
+      console.error(err);
+      modelSelect.innerHTML =
+        '<option value="">Errore nel caricamento</option>';
+    }
+  });
   // Ripristina le impostazioni salvate
   function restoreOptions() {
     // Carica impostazioni backend/monitoring
-    chrome.storage.sync.get(['backendUrl', 'isEnabled'], (syncItems) => {
-      backendUrl.value = syncItems.backendUrl || "http://localhost:1234/v1/chat/completion";
+    chrome.storage.sync.get(["backendUrl", "isEnabled"], (syncItems) => {
+      backendUrl.value =
+        syncItems.backendUrl || "http://localhost:1234/v1/chat/completion";
       enabledToggle.checked = syncItems.isEnabled !== false;
     });
 
     // Carica impostazioni AI
     chrome.storage.local.get(
-      ["model", "base_url", "api_Key", "temperature", "max_tokens", "base_prompt", "outputLanguage"],
+      [
+        "model",
+        "base_url",
+        "api_Key",
+        "temperature",
+        "max_tokens",
+        "base_prompt",
+        "outputLanguage",
+      ],
       (items) => {
         model.value = items.model || "lmstudio-community/llama-3.2-3b-instruct";
         base_url.value = items.base_url || "http://localhost:1234/v1";
         api_Key.value = items.api_Key || "lm-studio";
         temperature.value = items.temperature ?? 0.3;
-        max_tokens.value = items.max_tokens ?? 150;
-        base_prompt.value = items.base_prompt || "Trova il bug e proponi la soluzione";
+        max_tokens.value = items.max_tokens ?? 2000;
+        base_prompt.value =
+          items.base_prompt ||
+          "Trova il bug e proponi la soluzione fornendo esempi anche di codice javascript";
         outputLanguage.value = items.outputLanguage || "italiano";
       }
     );
@@ -56,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Salva impostazioni backend/monitoring
     const syncSettings = {
       backendUrl: backendUrl.value.trim(),
-      isEnabled: enabledToggle.checked
+      isEnabled: enabledToggle.checked,
     };
 
     chrome.storage.sync.set(syncSettings);
@@ -69,16 +120,16 @@ document.addEventListener("DOMContentLoaded", () => {
       temperature: parseFloat(temperature.value || "0.3"),
       max_tokens: parseInt(max_tokens.value || "150"),
       base_prompt: base_prompt.value.trim(),
-      outputLanguage: outputLanguage.value.trim() || "italiano"
+      outputLanguage: outputLanguage.value.trim() || "italiano",
     };
 
     chrome.storage.local.set(localSettings, () => {
       showStatus("✅ Impostazioni salvate con successo!", "success");
-      
+
       // Ricarica tutte le tab per applicare le nuove impostazioni
       chrome.tabs.query({}, (tabs) => {
-        tabs.forEach(tab => {
-          if (tab.url && !tab.url.startsWith('chrome://')) {
+        tabs.forEach((tab) => {
+          if (tab.url && !tab.url.startsWith("chrome://")) {
             chrome.tabs.reload(tab.id);
           }
         });
@@ -89,33 +140,33 @@ document.addEventListener("DOMContentLoaded", () => {
   // Test connessione AI
   async function testConnection() {
     showStatus("🔄 Test connessione in corso...", "info");
-    
+
     try {
       const settings = {
         base_url: base_url.value.trim(),
         api_Key: api_Key.value.trim(),
         model: model.value.trim(),
         temperature: parseFloat(temperature.value || "0.3"),
-        max_tokens: parseInt(max_tokens.value || "150")
+        max_tokens: parseInt(max_tokens.value || "150"),
       };
 
       const response = await fetch(`${settings.base_url}/chat/completions`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.api_Key}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${settings.api_Key}`,
         },
         body: JSON.stringify({
           model: settings.model,
           messages: [
             {
-              role: 'user',
-              content: 'Test connection. Reply with "OK"'
-            }
+              role: "user",
+              content: 'Test connection. Reply with "OK"',
+            },
           ],
           temperature: settings.temperature,
-          max_tokens: 50
-        })
+          max_tokens: 50,
+        }),
       });
 
       if (!response.ok) {
@@ -123,13 +174,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const data = await response.json();
-      
+
       if (data.choices && data.choices[0]) {
-        showStatus("✅ Connessione AI riuscita! Modello risponde correttamente.", "success");
+        showStatus(
+          "✅ Connessione AI riuscita! Modello risponde correttamente.",
+          "success"
+        );
       } else {
         showStatus("⚠️ Connessione stabilita ma risposta inaspettata", "error");
       }
-      
     } catch (error) {
       showStatus(`❌ Errore connessione: ${error.message}`, "error");
     }
@@ -139,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showStatus(message, type) {
     status.textContent = message;
     status.className = `${type}`;
-    
+
     if (type === "success") {
       setTimeout(() => {
         status.className = "";
@@ -153,9 +206,9 @@ document.addEventListener("DOMContentLoaded", () => {
   testBtn.addEventListener("click", testConnection);
 
   // Salvataggio con Enter nei campi input
-  document.querySelectorAll('input').forEach(input => {
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+  document.querySelectorAll("input").forEach((input) => {
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
         saveOptions();
       }
     });
