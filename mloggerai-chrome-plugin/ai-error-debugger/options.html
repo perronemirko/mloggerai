@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Debugger - Impostazioni</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 16px;
+      max-width: 700px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+    }
+    button {
+      margin-top: 16px;
+      padding: 8px 12px;
+    }
+    #status {
+      margin-top: 12px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>⚙️ Impostazioni AI Debugger</h2>
+
+  <label>Model
+    <input id="model" placeholder="lmstudio-community/llama-3.2-3b-instruct" value="lmstudio-community/llama-3.2-3b-instruct">
+  </label>
+
+  <label>Base URL
+    <input id="base_url" placeholder="http://localhost:1234/v1" value="http://localhost:1234/v1">
+  </label>
+
+  <label>API Key
+    <input id="api_Key" placeholder="sk-..." value="lm-studio">
+  </label>
+
+  <label>Temperature (0.0 - 1.0)
+    <input id="temperature" type="number" step="0.1" min="0" max="1" value="0.3">
+  </label>
+
+  <label>Max Tokens
+    <input id="max_tokens" type="number" placeholder="150" value="150">
+  </label>
+
+  <label>Base Prompt
+    <textarea id="base_prompt" rows="3" placeholder="Trova il bug e proponi la soluzione" value="Trova il bug e proponi la soluzione"></textarea>
+  </label>
+
+  <label>Output Language
+    <input id="outputLanguage" placeholder="italiano" value="Italiano">
+  </label>
+
+  <button id="saveBtn">Salva</button>
+  <div id="status"></div>
+
+  <!-- Collega solo file esterni -->
+  <script src="options.js" type="module"></script>
+</body>
+</html>
