@@ -48,6 +48,8 @@
     async function callBackendDirect(payload) {
       console.log("Attempting direct fetch to backend:", baseURL + "/v1/chat/completions");
       try {
+        console.log("callBackendDirect")
+        console.info(payload);
         const res = await fetch(`${baseURL}/v1/chat/completions`, {
           method: "POST",
           headers: {
