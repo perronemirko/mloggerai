@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
-#include <cpr/cpr.h>
+#include <memory>
+#include "ErrorSolver.hpp"
 
 class ErrorSolverBuilder {
 public:
-    // Costruttore base, legge le env o fallback
     ErrorSolverBuilder();
 
-    // Builder/fluent interface
+    // Metodi fluent per la configurazione
     ErrorSolverBuilder& setModel(const std::string& model);
     ErrorSolverBuilder& setLogFile(const std::string& log_file);
     ErrorSolverBuilder& setOutputLanguage(const std::string& lang);
@@ -18,22 +18,17 @@ public:
     ErrorSolverBuilder& setBackupCount(int count);
     ErrorSolverBuilder& setVerifySSL(bool verify);
 
-    void log(const std::string& level, const std::string& message);
-    std::string solve_from_log(const std::string& text);
+    // Metodo finale: costruisce l'oggetto ErrorSolver
+    std::shared_ptr<ErrorSolver> build() const;
 
 private:
     std::string model_;
-    std::string base_url_;
-    std::string api_key_;
     std::string log_file_;
     std::string output_language_;
-    std::string system_prompt_;
     double temperature_;
     int max_tokens_;
+    std::string system_prompt_;
     size_t max_bytes_;
     int backup_count_;
     bool verify_ssl_;
-
-    std::string current_time();
-    void rotate_logs();
 };

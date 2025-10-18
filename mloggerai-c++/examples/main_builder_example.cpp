@@ -1,26 +1,24 @@
 #include "ErrorSolverBuilder.hpp"
+#include "ErrorSolverFacade.hpp"
 #include <iostream>
 
 int main() {
-    ErrorSolverBuilder solver;
+    auto solver = ErrorSolverBuilder()
+        .setModel("gpt-4")
+        .setLogFile("logs/facade_test.log")
+        .setBackupCount(3)
+        .setMaxBytes(10 * 1024)
+        .setVerifySSL(false)
+        .build();
 
-    // Configurazione fluente
-    solver.
-    setModel("gpt-4")
-          .setLogFile("logs/app.log")
-          .setOutputLanguage("Italiano")
-          .setTemperature(0.3)
-          .setMaxTokens(150)
-          .setSystemPrompt("Trova il bug e proponi la soluzione in modo conciso.")
-          .setMaxBytes(2*1024*1024)
-          .setBackupCount(3)
-          .setVerifySSL(true);
+    ErrorSolverFacade logger(solver);
 
-    solver.log("INFO", "Applicazione avviata.");
-    solver.log("ERROR", "Errore di esempio");
+    logger.info("Sistema avviato correttamente.");
+    logger.warning("Memoria disponibile bassa.");
+    logger.error("Divisione per zero in modulo core.");
+    logger.fatal("Errore critico non recuperabile.");
+    logger.debug("Log di debug attivo.");
 
-    std::string solution = solver.solve_from_log("NullPointerException at MyClass.java:42");
-    std::cout << "✅ Soluzione AI: " << solution << std::endl;
-
+    std::cout << "\n✅ Test completato. Controlla i log in logs/facade_test.log\n";
     return 0;
 }
